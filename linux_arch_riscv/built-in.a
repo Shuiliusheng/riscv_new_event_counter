@@ -1,0 +1,83 @@
+!<thin>
+//                                              712       `
+kernel/soc.o/
+kernel/cpu.o/
+kernel/cpufeature.o/
+kernel/entry.o/
+kernel/irq.o/
+kernel/process.o/
+kernel/ptrace.o/
+kernel/reset.o/
+kernel/setup.o/
+kernel/signal.o/
+kernel/syscall_table.o/
+kernel/sys_riscv.o/
+kernel/time.o/
+kernel/traps.o/
+kernel/riscv_ksyms.o/
+kernel/stacktrace.o/
+kernel/cacheinfo.o/
+kernel/patch.o/
+kernel/vdso.o/
+kernel/vdso/vdso.o/
+kernel/vdso/vdso-syms.o/
+kernel/fpu.o/
+kernel/smpboot.o/
+kernel/smp.o/
+kernel/cpu_ops.o/
+kernel/cpu_ops_spinwait.o/
+kernel/module.o/
+kernel/module-sections.o/
+kernel/perf_event.o/
+kernel/perf_callchain.o/
+kernel/perf_regs.o/
+kernel/sbi.o/
+kernel/cpu_ops_sbi.o/
+mm/init.o/
+mm/extable.o/
+mm/fault.o/
+mm/pageattr.o/
+mm/cacheflush.o/
+mm/context.o/
+mm/tlbflush.o/
+
+/0              0           0     0     644     16176     `
+/14             0           0     0     644     195296    `
+/28             0           0     0     644     119376    `
+/49             0           0     0     644     23672     `
+/65             0           0     0     644     160600    `
+/79             0           0     0     644     197568    `
+/97             0           0     0     644     387176    `
+/114            0           0     0     644     13312     `
+/130            0           0     0     644     209128    `
+/146            0           0     0     644     406360    `
+/163            0           0     0     644     256184    `
+/187            0           0     0     644     248416    `
+/207            0           0     0     644     56544     `
+/222            0           0     0     644     287424    `
+/238            0           0     0     644     69392     `
+/260            0           0     0     644     250648    `
+/281            0           0     0     644     221512    `
+/301            0           0     0     644     187264    `
+/317            0           0     0     644     194184    `
+/332            0           0     0     644     8960      `
+/352            0           0     0     644     912       `
+/377            0           0     0     644     8824      `
+/391            0           0     0     644     262592    `
+/409            0           0     0     644     297208    `
+/423            0           0     0     644     163936    `
+/441            0           0     0     644     71352     `
+/468            0           0     0     644     208392    `
+/485            0           0     0     644     149056    `
+/511            0           0     0     644     327552    `
+/532            0           0     0     644     263552    `
+/557            0           0     0     644     243800    `
+/577            0           0     0     644     182784    `
+/591            0           0     0     644     166192    `
+/613            0           0     0     644     472336    `
+/624            0           0     0     644     61304     `
+/638            0           0     0     644     309440    `
+/650            0           0     0     644     238272    `
+/665            0           0     0     644     180512    `
+/682            0           0     0     644     153808    `
+/696            0           0     0     644     169248    `

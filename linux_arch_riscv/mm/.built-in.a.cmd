@@ -1,0 +1,1 @@
+cmd_arch/riscv/mm/built-in.a := rm -f arch/riscv/mm/built-in.a; /home/cuihongwei/server22/fpga-rocket/temp/rv32_toolchain/bin/riscv32-unknown-linux-gnu-ar cDPrST arch/riscv/mm/built-in.a arch/riscv/mm/init.o arch/riscv/mm/extable.o arch/riscv/mm/fault.o arch/riscv/mm/pageattr.o arch/riscv/mm/cacheflush.o arch/riscv/mm/context.o arch/riscv/mm/tlbflush.o

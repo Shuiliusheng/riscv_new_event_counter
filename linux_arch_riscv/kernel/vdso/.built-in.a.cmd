@@ -1,0 +1,1 @@
+cmd_arch/riscv/kernel/vdso/built-in.a := rm -f arch/riscv/kernel/vdso/built-in.a; /home/cuihongwei/server22/fpga-rocket/temp/rv32_toolchain/bin/riscv32-unknown-linux-gnu-ar cDPrST arch/riscv/kernel/vdso/built-in.a arch/riscv/kernel/vdso/vdso.o arch/riscv/kernel/vdso/vdso-syms.o
