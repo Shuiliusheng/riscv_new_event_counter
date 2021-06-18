@@ -41,6 +41,9 @@ class ExeUnitResp(val dataWidth: Int)(implicit p: Parameters) extends BoomBundle
   val data = Bits(dataWidth.W)
   val predicated = Bool() // Was this predicated off?
   val fflags = new ValidIO(new FFlagsResp) // write fflags to ROB // TODO: Do this better
+
+  //chw: for event
+  val counter = UInt(64.W)
 }
 
 /**
@@ -275,6 +278,8 @@ class ALUExeUnit(
     alu.io.req.bits.rs2_data := io.req.bits.rs2_data
     alu.io.req.bits.rs3_data := DontCare
     alu.io.req.bits.pred_data := io.req.bits.pred_data
+    //chw: for event
+    alu.io.req.bits.counter := io.req.bits.counter
     alu.io.resp.ready := DontCare
     alu.io.brupdate := io.brupdate
 
@@ -299,6 +304,7 @@ class ALUExeUnit(
     rocc.io.req.bits.kill     := io.req.bits.kill
     rocc.io.req.bits.rs1_data := io.req.bits.rs1_data
     rocc.io.req.bits.rs2_data := io.req.bits.rs2_data
+    rocc.io.req.bits.counter := 0.U
     rocc.io.brupdate          := io.brupdate // We should assert on this somewhere
     rocc.io.status            := io.status
     rocc.io.exception         := io.com_exception
@@ -308,6 +314,8 @@ class ALUExeUnit(
     io.ll_iresp.valid         := rocc.io.resp.valid
     io.ll_iresp.bits.uop      := rocc.io.resp.bits.uop
     io.ll_iresp.bits.data     := rocc.io.resp.bits.data
+    //chw: for event
+    io.ll_iresp.bits.counter     := 0.U
   }
 
 
@@ -320,6 +328,7 @@ class ALUExeUnit(
     imul.io.req.bits.uop      := io.req.bits.uop
     imul.io.req.bits.rs1_data := io.req.bits.rs1_data
     imul.io.req.bits.rs2_data := io.req.bits.rs2_data
+    imul.io.req.bits.counter := 0.U
     imul.io.req.bits.kill     := io.req.bits.kill
     imul.io.brupdate := io.brupdate
     iresp_fu_units += imul
@@ -342,6 +351,8 @@ class ALUExeUnit(
     queue.io.enq.bits.data   := ifpu.io.resp.bits.data
     queue.io.enq.bits.predicated := ifpu.io.resp.bits.predicated
     queue.io.enq.bits.fflags := ifpu.io.resp.bits.fflags
+    //chw: for event
+    queue.io.enq.bits.counter := 0.U
     queue.io.brupdate := io.brupdate
     queue.io.flush := io.req.bits.kill
 
@@ -360,6 +371,7 @@ class ALUExeUnit(
     div.io.req.bits.uop        := io.req.bits.uop
     div.io.req.bits.rs1_data   := io.req.bits.rs1_data
     div.io.req.bits.rs2_data   := io.req.bits.rs2_data
+    div.io.req.bits.counter   := 0.U
     div.io.brupdate            := io.brupdate
     div.io.req.bits.kill       := io.req.bits.kill
 
@@ -404,6 +416,10 @@ class ALUExeUnit(
       (f.io.resp.valid, f.io.resp.bits.data)))
     io.iresp.bits.predicated := PriorityMux(iresp_fu_units.map(f =>
       (f.io.resp.valid, f.io.resp.bits.predicated)))
+
+    //chw: for event
+    io.iresp.bits.counter := PriorityMux(iresp_fu_units.map(f =>
+      (f.io.resp.valid, f.io.resp.bits.counter)))
 
     // pulled out for critical path reasons
     // TODO: Does this make sense as part of the iresp bundle?
@@ -473,6 +489,7 @@ class FPUExeUnit(
     fpu.io.req.bits.rs1_data := io.req.bits.rs1_data
     fpu.io.req.bits.rs2_data := io.req.bits.rs2_data
     fpu.io.req.bits.rs3_data := io.req.bits.rs3_data
+    fpu.io.req.bits.counter := 0.U
     fpu.io.req.bits.pred_data := false.B
     fpu.io.req.bits.kill     := io.req.bits.kill
     fpu.io.fcsr_rm           := io.fcsr_rm
@@ -496,6 +513,7 @@ class FPUExeUnit(
     fdivsqrt.io.req.bits.rs1_data := io.req.bits.rs1_data
     fdivsqrt.io.req.bits.rs2_data := io.req.bits.rs2_data
     fdivsqrt.io.req.bits.rs3_data := DontCare
+    fdivsqrt.io.req.bits.counter := DontCare
     fdivsqrt.io.req.bits.pred_data := false.B
     fdivsqrt.io.req.bits.kill     := io.req.bits.kill
     fdivsqrt.io.fcsr_rm           := io.fcsr_rm
@@ -520,6 +538,9 @@ class FPUExeUnit(
   io.fresp.bits.data:= PriorityMux(fu_units.map(f => (f.io.resp.valid, f.io.resp.bits.data)))
   io.fresp.bits.fflags := Mux(fpu_resp_val, fpu_resp_fflags, fdiv_resp_fflags)
 
+  //chw: for event
+  io.fresp.bits.counter := 0.U
+
   // Outputs (Write Port #1) -- FpToInt Queuing Unit -----------------------
 
   if (hasFpiu) {
@@ -534,6 +555,8 @@ class FPUExeUnit(
     queue.io.enq.bits.data   := fpu.io.resp.bits.data
     queue.io.enq.bits.predicated := fpu.io.resp.bits.predicated
     queue.io.enq.bits.fflags := fpu.io.resp.bits.fflags
+    //chw: for event
+    queue.io.enq.bits.counter := 0.U
     queue.io.brupdate          := io.brupdate
     queue.io.flush           := io.req.bits.kill
 
@@ -546,6 +569,8 @@ class FPUExeUnit(
     fp_sdq.io.enq.bits.data  := ieee(io.req.bits.rs2_data)
     fp_sdq.io.enq.bits.predicated := false.B
     fp_sdq.io.enq.bits.fflags := DontCare
+    //chw: for event
+    fp_sdq.io.enq.bits.counter := DontCare
     fp_sdq.io.brupdate         := io.brupdate
     fp_sdq.io.flush          := io.req.bits.kill
 

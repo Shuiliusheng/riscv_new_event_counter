@@ -124,6 +124,12 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
                             Seq(true))) // The jmp unit is always bypassable
   pregfile.io := DontCare // Only use the IO if enableSFBOpt
 
+  //chw: for event
+  val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu)))
+  for(i <- 0 until 8){
+    event_counters.io.event_signals(i) := 1.U
+  }
+
   // wb arbiter for the 0th ll writeback
   // TODO: should this be a multi-arb?
   val ll_wbarb         = Module(new Arbiter(new ExeUnitResp(xLen), 1 +
@@ -583,6 +589,12 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   } .otherwise {
     dec_finished_mask := dec_fire.asUInt | dec_finished_mask
   }
+  val debug_cycles = freechips.rocketchip.util.WideCounter(32)
+  for (w <- 0 until coreWidth) {
+    when(dec_fire(w)){
+      printf("cycles: %d, w: %d, pc: 0x%x, inst: 0x%x, opc: %d, rd: %d, rs1: %d, rs2: %d, wevent: %d\n", debug_cycles.value, w.U, dec_uops(w).debug_pc, dec_uops(w).inst, dec_uops(w).uopc, dec_uops(w).ldst, dec_uops(w).lrs1, dec_uops(w).lrs2, dec_uops(w).wevent)
+    }
+  }
 
   //-------------------------------------------------------------
   // Branch Mask Logic
@@ -637,6 +649,8 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
    * split the INT/FP rename pipelines into separate instantiations.
    * Won't have to do this anymore with a properly decoupled FP pipeline.
    */
+  val print_flag = RegInit(false.B)
+  
   for (w <- 0 until coreWidth) {
     val i_uop   = rename_stage.io.ren2_uops(w)
     val f_uop   = if (usingFPU) fp_rename_stage.io.ren2_uops(w) else NullMicroOp
@@ -663,6 +677,11 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     dis_uops(w).ppred_busy := p_uop.ppred_busy && dis_uops(w).is_sfb_shadow
 
     ren_stalls(w) := rename_stage.io.ren_stalls(w) || f_stall || p_stall
+
+    when(dis_uops(w).revent){
+      print_flag := true.B
+    }
+
   }
 
   //-------------------------------------------------------------
@@ -715,6 +734,10 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     // Dispatching instructions request load/store queue entries when they can proceed.
     dis_uops(w).ldq_idx := io.lsu.dis_ldq_idx(w)
     dis_uops(w).stq_idx := io.lsu.dis_stq_idx(w)
+
+    when(dis_fire(w) && (print_flag || dis_uops(w).revent)){
+      printf("rename pc: 0x%x, inst: 0x%x, lrs1: %d, prs1: %d, lrs2: %d, prs2: %d, ldst: %d, pdst: %d\n", dis_uops(w).debug_pc, dis_uops(w).inst, dis_uops(w).lrs1, dis_uops(w).prs1, dis_uops(w).lrs2, dis_uops(w).prs2, dis_uops(w).ldst, dis_uops(w).pdst)
+    }
   }
 
   //-------------------------------------------------------------
@@ -861,6 +884,8 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   pred_wakeup.bits.fflags := DontCare
   pred_wakeup.bits.data := DontCare
   pred_wakeup.bits.predicated := DontCare
+  //chw: for event
+  pred_wakeup.bits.counter := DontCare
 
   // Perform load-hit speculative wakeup through a special port (performs a poison wake-up).
   issue_units map { iu =>
@@ -983,6 +1008,18 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   iregister_read.io.bypass := bypasses
   iregister_read.io.pred_bypass := pred_bypasses
 
+  //chw: for read event counter
+  for (w <- 0 until exe_units.numIrfReaders) {
+    event_counters.io.read_addr(w).valid := iss_valids(w) && iss_uops(w).revent
+    event_counters.io.read_addr(w).bits := iss_uops(w).lrs2
+
+    when(iss_valids(w) && iss_uops(w).revent){
+      printf("core set read idx, cycle: %d, idx: %d, pc: 0x%x, lrs1: %d, lrs2: %d\n", debug_cycles.value, w.U, iss_uops(w).debug_pc, iss_uops(w).lrs1, iss_uops(w).lrs2)
+    }
+
+  }
+  
+
   //-------------------------------------------------------------
   // Privileged Co-processor 0 Register File
   // Note: Normally this would be bad in that I'm writing state before
@@ -1002,6 +1039,10 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   // Extra I/O
   // Delay retire/exception 1 cycle
   csr.io.retire    := RegNext(PopCount(rob.io.commit.arch_valids.asUInt))
+
+  //chw: for test
+  event_counters.io.event_signals(0) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt))
+
   csr.io.exception := RegNext(rob.io.com_xcpt.valid)
   // csr.io.pc used for setting EPC during exception or CSR.io.trace.
 
@@ -1072,6 +1113,12 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     val exe_unit = exe_units(w)
     if (exe_unit.readsIrf) {
       exe_unit.io.req <> iregister_read.io.exe_reqs(iss_idx)
+
+      //chw: for event counter, add read counter to fu
+      exe_unit.io.req.bits.counter := event_counters.io.read_data(iss_idx)
+      when(exe_unit.io.req.valid){
+        printf("core, set exeunit req counter, cycle: %d, valid: %d, pc: 0x%x, revent: %d, lrs1: %d, lrs2: %d, data: %d\n", debug_cycles.value, exe_unit.io.req.valid, exe_unit.io.req.bits.uop.debug_pc, exe_unit.io.req.bits.uop.revent, exe_unit.io.req.bits.uop.lrs1, exe_unit.io.req.bits.uop.lrs2, exe_unit.io.req.bits.counter)
+      }
 
       if (exe_unit.bypassable) {
         for (i <- 0 until exe_unit.numBypassStages) {
@@ -1154,6 +1201,11 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
         iregfile.io.write_ports(w_cnt).bits.data := wbdata
       }
 
+      when(wbresp.bits.uop.revent){
+        printf("iregfile: valid: %d, addr: %d, data: %d\n", iregfile.io.write_ports(w_cnt).valid, iregfile.io.write_ports(w_cnt).bits.addr, iregfile.io.write_ports(w_cnt).bits.data)
+        printf("core write counter, pc: 0x%x, pdst: %d, ldst: %d, data: %d\n", wbresp.bits.uop.debug_pc, wbresp.bits.uop.pdst, wbresp.bits.uop.ldst, wbdata)
+      }
+
       assert (!wbIsValid(RT_FLT), "[fppipeline] An FP writeback is being attempted to the Int Regfile.")
 
       assert (!(wbresp.valid &&
@@ -1175,6 +1227,24 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     pregfile.io.write_ports(0).bits.addr := jmp_unit.io.iresp.bits.uop.pdst
     pregfile.io.write_ports(0).bits.data := jmp_unit.io.iresp.bits.data
   }
+
+  //chw: for write counter 
+  var wc_cnt = 0
+  for (i <- 0 until exe_units.length) {
+    if (exe_units(i).hasAlu) {
+      val wbresp = exe_units(i).io.iresp
+      event_counters.io.write_addr(wc_cnt).valid := wbresp.valid && wbresp.bits.uop.wevent
+      event_counters.io.write_addr(wc_cnt).bits := wbresp.bits.uop.lrs2
+      event_counters.io.write_data(wc_cnt) := wbresp.bits.counter
+
+      when(wbresp.valid && wbresp.bits.uop.wevent){
+        printf("core, write event, cycles: %d, idx: %d, pc: 0x%x, lrs1: %d, lrs2: %d, data: %d\n", debug_cycles.value, i.U, wbresp.bits.uop.debug_pc, wbresp.bits.uop.lrs1, wbresp.bits.uop.lrs2, wbresp.bits.counter)
+      }
+
+      wc_cnt += 1
+    }
+  }
+
 
   if (usingFPU) {
     // Connect IFPU
