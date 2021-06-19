@@ -27,6 +27,17 @@ void asm_offsets(void)
 	OFFSET(TASK_THREAD_S9, task_struct, thread.s[9]);
 	OFFSET(TASK_THREAD_S10, task_struct, thread.s[10]);
 	OFFSET(TASK_THREAD_S11, task_struct, thread.s[11]);
+	//chw: for counters
+	OFFSET(TASK_THREAD_C0, task_struct, thread.counters[0]);
+	OFFSET(TASK_THREAD_C1, task_struct, thread.counters[1]);
+	OFFSET(TASK_THREAD_C2, task_struct, thread.counters[2]);
+	OFFSET(TASK_THREAD_C3, task_struct, thread.counters[3]);
+	OFFSET(TASK_THREAD_C4, task_struct, thread.counters[4]);
+	OFFSET(TASK_THREAD_C5, task_struct, thread.counters[5]);
+	OFFSET(TASK_THREAD_C6, task_struct, thread.counters[6]);
+	OFFSET(TASK_THREAD_C7, task_struct, thread.counters[7]);
+
+
 	OFFSET(TASK_TI_FLAGS, task_struct, thread_info.flags);
 	OFFSET(TASK_TI_PREEMPT_COUNT, task_struct, thread_info.preempt_count);
 	OFFSET(TASK_TI_KERNEL_SP, task_struct, thread_info.kernel_sp);
@@ -167,6 +178,16 @@ void asm_offsets(void)
 		  offsetof(struct task_struct, thread.s[11])
 		- offsetof(struct task_struct, thread.ra)
 	);
+
+	//chw
+	DEFINE(TASK_THREAD_C0_RA, offsetof(struct task_struct, thread.counters[0]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C1_RA, offsetof(struct task_struct, thread.counters[1]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C2_RA, offsetof(struct task_struct, thread.counters[2]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C3_RA, offsetof(struct task_struct, thread.counters[3]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C4_RA, offsetof(struct task_struct, thread.counters[4]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C5_RA, offsetof(struct task_struct, thread.counters[5]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C6_RA, offsetof(struct task_struct, thread.counters[6]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C7_RA, offsetof(struct task_struct, thread.counters[7]) - offsetof(struct task_struct, thread.ra));
 
 	DEFINE(TASK_THREAD_F0_F0,
 		  offsetof(struct task_struct, thread.fstate.f[0])

@@ -34,6 +34,9 @@ struct thread_struct {
 	unsigned long sp;	/* Kernel mode stack */
 	unsigned long s[12];	/* s[0]: frame pointer */
 	struct __riscv_d_ext_state fstate;
+
+	//chw
+	unsigned long counters[8];
 };
 
 #define INIT_THREAD {					\

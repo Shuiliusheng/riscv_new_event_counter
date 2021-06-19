@@ -590,11 +590,11 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     dec_finished_mask := dec_fire.asUInt | dec_finished_mask
   }
   val debug_cycles = freechips.rocketchip.util.WideCounter(32)
-  for (w <- 0 until coreWidth) {
-    when(dec_fire(w)){
-      printf("cycles: %d, w: %d, pc: 0x%x, inst: 0x%x, opc: %d, rd: %d, rs1: %d, rs2: %d, wevent: %d\n", debug_cycles.value, w.U, dec_uops(w).debug_pc, dec_uops(w).inst, dec_uops(w).uopc, dec_uops(w).ldst, dec_uops(w).lrs1, dec_uops(w).lrs2, dec_uops(w).wevent)
-    }
-  }
+  // for (w <- 0 until coreWidth) {
+  //   when(dec_fire(w)){
+  //     printf("cycles: %d, w: %d, pc: 0x%x, inst: 0x%x, opc: %d, rd: %d, rs1: %d, rs2: %d, wevent: %d\n", debug_cycles.value, w.U, dec_uops(w).debug_pc, dec_uops(w).inst, dec_uops(w).uopc, dec_uops(w).ldst, dec_uops(w).lrs1, dec_uops(w).lrs2, dec_uops(w).wevent)
+  //   }
+  // }
 
   //-------------------------------------------------------------
   // Branch Mask Logic
@@ -735,9 +735,9 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     dis_uops(w).ldq_idx := io.lsu.dis_ldq_idx(w)
     dis_uops(w).stq_idx := io.lsu.dis_stq_idx(w)
 
-    when(dis_fire(w) && (print_flag || dis_uops(w).revent)){
-      printf("rename pc: 0x%x, inst: 0x%x, lrs1: %d, prs1: %d, lrs2: %d, prs2: %d, ldst: %d, pdst: %d\n", dis_uops(w).debug_pc, dis_uops(w).inst, dis_uops(w).lrs1, dis_uops(w).prs1, dis_uops(w).lrs2, dis_uops(w).prs2, dis_uops(w).ldst, dis_uops(w).pdst)
-    }
+    // when(dis_fire(w) && (print_flag || dis_uops(w).revent)){
+    //   printf("rename pc: 0x%x, inst: 0x%x, lrs1: %d, prs1: %d, lrs2: %d, prs2: %d, ldst: %d, pdst: %d\n", dis_uops(w).debug_pc, dis_uops(w).inst, dis_uops(w).lrs1, dis_uops(w).prs1, dis_uops(w).lrs2, dis_uops(w).prs2, dis_uops(w).ldst, dis_uops(w).pdst)
+    // }
   }
 
   //-------------------------------------------------------------
@@ -1013,9 +1013,9 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     event_counters.io.read_addr(w).valid := iss_valids(w) && iss_uops(w).revent
     event_counters.io.read_addr(w).bits := iss_uops(w).lrs2
 
-    when(iss_valids(w) && iss_uops(w).revent){
-      printf("core set read idx, cycle: %d, idx: %d, pc: 0x%x, lrs1: %d, lrs2: %d\n", debug_cycles.value, w.U, iss_uops(w).debug_pc, iss_uops(w).lrs1, iss_uops(w).lrs2)
-    }
+    // when(iss_valids(w) && iss_uops(w).revent){
+    //   printf("core set read idx, cycle: %d, idx: %d, pc: 0x%x, lrs1: %d, lrs2: %d\n", debug_cycles.value, w.U, iss_uops(w).debug_pc, iss_uops(w).lrs1, iss_uops(w).lrs2)
+    // }
 
   }
   
@@ -1040,8 +1040,36 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   // Delay retire/exception 1 cycle
   csr.io.retire    := RegNext(PopCount(rob.io.commit.arch_valids.asUInt))
 
-  //chw: for test
-  event_counters.io.event_signals(0) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt))
+  //chw: for setting event signals
+  event_counters.io.event_signals(0) := 1.U  //cycles
+  event_counters.io.event_signals(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+  event_counters.io.event_signals(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+  event_counters.io.event_signals(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+  event_counters.io.event_signals(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+  event_counters.io.event_signals(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+  event_counters.io.event_signals(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+
+  val events = RegInit(VecInit(Seq.fill(5) { 0.U(64.W) }))
+  when(io.ifu.perf.acquire){
+    events(0) := events(0) + 1.U
+  }
+  when(io.lsu.perf.acquire){
+    events(1) := events(1) + 1.U
+  }
+  when(io.ifu.perf.tlbMiss){
+    events(2) := events(2) + 1.U
+  }
+  when(io.lsu.perf.tlbMiss){
+    events(3) := events(3) + 1.U
+  }
+  when(io.ptw.perf.l2miss){
+    events(4) := events(4) + 1.U
+  }
+
+  when(rob.io.commit.valids.reduce(_||_)){
+    printf("cycle: %d, events: %d, %d, %d, %d, %d\n", debug_cycles.value, events(0), events(1), events(2), events(3), events(4))
+  }
+
 
   csr.io.exception := RegNext(rob.io.com_xcpt.valid)
   // csr.io.pc used for setting EPC during exception or CSR.io.trace.
@@ -1116,9 +1144,9 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
       //chw: for event counter, add read counter to fu
       exe_unit.io.req.bits.counter := event_counters.io.read_data(iss_idx)
-      when(exe_unit.io.req.valid){
-        printf("core, set exeunit req counter, cycle: %d, valid: %d, pc: 0x%x, revent: %d, lrs1: %d, lrs2: %d, data: %d\n", debug_cycles.value, exe_unit.io.req.valid, exe_unit.io.req.bits.uop.debug_pc, exe_unit.io.req.bits.uop.revent, exe_unit.io.req.bits.uop.lrs1, exe_unit.io.req.bits.uop.lrs2, exe_unit.io.req.bits.counter)
-      }
+      // when(exe_unit.io.req.valid){
+      //   printf("core, set exeunit req counter, cycle: %d, valid: %d, pc: 0x%x, revent: %d, lrs1: %d, lrs2: %d, data: %d\n", debug_cycles.value, exe_unit.io.req.valid, exe_unit.io.req.bits.uop.debug_pc, exe_unit.io.req.bits.uop.revent, exe_unit.io.req.bits.uop.lrs1, exe_unit.io.req.bits.uop.lrs2, exe_unit.io.req.bits.counter)
+      // }
 
       if (exe_unit.bypassable) {
         for (i <- 0 until exe_unit.numBypassStages) {
@@ -1237,9 +1265,9 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
       event_counters.io.write_addr(wc_cnt).bits := wbresp.bits.uop.lrs2
       event_counters.io.write_data(wc_cnt) := wbresp.bits.counter
 
-      when(wbresp.valid && wbresp.bits.uop.wevent){
-        printf("core, write event, cycles: %d, idx: %d, pc: 0x%x, lrs1: %d, lrs2: %d, data: %d\n", debug_cycles.value, i.U, wbresp.bits.uop.debug_pc, wbresp.bits.uop.lrs1, wbresp.bits.uop.lrs2, wbresp.bits.counter)
-      }
+      // when(wbresp.valid && wbresp.bits.uop.wevent){
+      //   printf("core, write event, cycles: %d, idx: %d, pc: 0x%x, lrs1: %d, lrs2: %d, data: %d\n", debug_cycles.value, i.U, wbresp.bits.uop.debug_pc, wbresp.bits.uop.lrs1, wbresp.bits.uop.lrs2, wbresp.bits.counter)
+      // }
 
       wc_cnt += 1
     }
