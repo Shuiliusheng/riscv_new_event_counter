@@ -416,6 +416,7 @@ ENTRY(__switch_to)
 	REG_S s10, TASK_THREAD_S10_RA(a3)
 	REG_S s11, TASK_THREAD_S11_RA(a3)
 
+	/*chw*/
 	add x0,s0,x0
 	REG_S s0, TASK_THREAD_C0_RA(a3)
 	add x0,s0,x1

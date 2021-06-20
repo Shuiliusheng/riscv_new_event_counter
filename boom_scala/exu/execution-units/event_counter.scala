@@ -37,7 +37,7 @@ class EventCounter(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) ext
 
     val reg_counters = io.event_signals.zipWithIndex.map { case (e, i) => freechips.rocketchip.util.WideCounter(64, e, reset = false) }
 
-    val debug_cycles = freechips.rocketchip.util.WideCounter(32)
+    // val debug_cycles = freechips.rocketchip.util.WideCounter(32)
     // for(i <- 0 until 8){
     //     printf("cycle: %d, count %d: %d\n", debug_cycles.value, i.U, reg_counters(i))
     // }
@@ -46,9 +46,9 @@ class EventCounter(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) ext
     val reg_read_data = Reg(Vec(issueWidth, UInt(64.W)))
     for(i <- 0 until issueWidth){
         io.read_data(i) := RegNext(reg_read_data(i))
-        when(RegNext(io.read_addr(i).valid)){
-            printf("read event last valid, cycle: %d, idx: %d, addr: %d, data0: %d, data1: %d\n", debug_cycles.value, i.U, RegNext(io.read_addr(i).bits), io.read_data(0), io.read_data(1))
-        }
+        // when(RegNext(io.read_addr(i).valid)){
+        //     printf("read event last valid, cycle: %d, idx: %d, addr: %d, data0: %d, data1: %d\n", debug_cycles.value, i.U, RegNext(io.read_addr(i).bits), io.read_data(0), io.read_data(1))
+        // }
     }
 
     for(i <- 0 until issueWidth){
@@ -73,7 +73,7 @@ class EventCounter(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) ext
                 is (6.U) { reg_read_data(i) := reg_counters(6) }
                 is (7.U) { reg_read_data(i) := reg_counters(7) }
             }
-            printf("read event valid, cycle: %d, idx: %d, addr: %d, data0: %d, data1: %d\n", debug_cycles.value, i.U, io.read_addr(i).bits, reg_counters(0), reg_counters(1))
+            // printf("read event valid, cycle: %d, idx: %d, addr: %d, data0: %d, data1: %d\n", debug_cycles.value, i.U, io.read_addr(i).bits, reg_counters(0), reg_counters(1))
         }
     }
 
@@ -89,7 +89,7 @@ class EventCounter(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) ext
                 is (6.U) { reg_counters(6) := io.write_data(i) }
                 is (7.U) { reg_counters(7) := io.write_data(i) }
             }
-            printf("write event valid, cycle: %d, idx: %d, addr: %d, data: %d, counter1: %d, counter2: %d, counter3: %d\n", debug_cycles.value, i.U, io.write_addr(i).bits, io.write_data(i), reg_counters(0), reg_counters(1), reg_counters(2))
+            // printf("write event valid, cycle: %d, idx: %d, addr: %d, data: %d, counter1: %d, counter2: %d, counter3: %d\n", debug_cycles.value, i.U, io.write_addr(i).bits, io.write_data(i), reg_counters(0), reg_counters(1), reg_counters(2))
         }
     }
 }

@@ -250,13 +250,13 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   val perfEvents = new freechips.rocketchip.rocket.EventSets(Seq(
     new freechips.rocketchip.rocket.EventSet((mask, hits) => (mask & hits).orR, Seq(
       ("exception", () => rob.io.com_xcpt.valid),
-      ("nop",       () => true.B),
-      ("nop",       () => true.B),
-      ("nop",       () => true.B))),
+      ("nop",       () => false.B),
+      ("nop",       () => false.B),
+      ("nop",       () => false.B))),
 
     new freechips.rocketchip.rocket.EventSet((mask, hits) => (mask & hits).orR, Seq(
 //      ("I$ blocked",                        () => icache_blocked),
-      ("nop",                               () => true.B),
+      ("nop",                               () => false.B),
       // ("branch misprediction",              () => br_unit.brinfo.mispredict),
       // ("control-flow target misprediction", () => br_unit.brinfo.mispredict &&
       //                                             br_unit.brinfo.cfi_type === CFI_JALR),
@@ -265,11 +265,11 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     )),
 
     new freechips.rocketchip.rocket.EventSet((mask, hits) => (mask & hits).orR, Seq(
-      ("I$ miss",     () => true.B),
-      ("D$ miss",     () => true.B),
+      ("I$ miss",     () => io.ifu.perf.acquire),
+      ("D$ miss",     () => io.lsu.perf.acquire),
       ("D$ release",  () => io.lsu.perf.release),
       ("ITLB miss",   () => io.ifu.perf.tlbMiss),
-      ("DTLB miss",   () => true.B),
+      ("DTLB miss",   () => io.lsu.perf.tlbMiss),
       ("L2 TLB miss", () => io.ptw.perf.l2miss)))))
   val csr = Module(new freechips.rocketchip.rocket.CSRFile(perfEvents, boomParams.customCSRs.decls))
   csr.io.inst foreach { c => c := DontCare }
@@ -589,7 +589,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   } .otherwise {
     dec_finished_mask := dec_fire.asUInt | dec_finished_mask
   }
-  val debug_cycles = freechips.rocketchip.util.WideCounter(32)
+  // val debug_cycles = freechips.rocketchip.util.WideCounter(32)
   // for (w <- 0 until coreWidth) {
   //   when(dec_fire(w)){
   //     printf("cycles: %d, w: %d, pc: 0x%x, inst: 0x%x, opc: %d, rd: %d, rs1: %d, rs2: %d, wevent: %d\n", debug_cycles.value, w.U, dec_uops(w).debug_pc, dec_uops(w).inst, dec_uops(w).uopc, dec_uops(w).ldst, dec_uops(w).lrs1, dec_uops(w).lrs2, dec_uops(w).wevent)
@@ -649,7 +649,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
    * split the INT/FP rename pipelines into separate instantiations.
    * Won't have to do this anymore with a properly decoupled FP pipeline.
    */
-  val print_flag = RegInit(false.B)
+  // val print_flag = RegInit(false.B)
   
   for (w <- 0 until coreWidth) {
     val i_uop   = rename_stage.io.ren2_uops(w)
@@ -678,9 +678,9 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
     ren_stalls(w) := rename_stage.io.ren_stalls(w) || f_stall || p_stall
 
-    when(dis_uops(w).revent){
-      print_flag := true.B
-    }
+    // when(dis_uops(w).revent){
+    //   print_flag := true.B
+    // }
 
   }
 
@@ -1066,9 +1066,9 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     events(4) := events(4) + 1.U
   }
 
-  when(rob.io.commit.valids.reduce(_||_)){
-    printf("cycle: %d, events: %d, %d, %d, %d, %d\n", debug_cycles.value, events(0), events(1), events(2), events(3), events(4))
-  }
+  // when(rob.io.commit.valids.reduce(_||_)){
+  //   printf("cycle: %d, events: %d, %d, %d, %d, %d\n", debug_cycles.value, events(0), events(1), events(2), events(3), events(4))
+  // }
 
 
   csr.io.exception := RegNext(rob.io.com_xcpt.valid)
@@ -1229,10 +1229,10 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
         iregfile.io.write_ports(w_cnt).bits.data := wbdata
       }
 
-      when(wbresp.bits.uop.revent){
-        printf("iregfile: valid: %d, addr: %d, data: %d\n", iregfile.io.write_ports(w_cnt).valid, iregfile.io.write_ports(w_cnt).bits.addr, iregfile.io.write_ports(w_cnt).bits.data)
-        printf("core write counter, pc: 0x%x, pdst: %d, ldst: %d, data: %d\n", wbresp.bits.uop.debug_pc, wbresp.bits.uop.pdst, wbresp.bits.uop.ldst, wbdata)
-      }
+      // when(wbresp.bits.uop.revent){
+      //   printf("iregfile: valid: %d, addr: %d, data: %d\n", iregfile.io.write_ports(w_cnt).valid, iregfile.io.write_ports(w_cnt).bits.addr, iregfile.io.write_ports(w_cnt).bits.data)
+      //   printf("core write counter, pc: 0x%x, pdst: %d, ldst: %d, data: %d\n", wbresp.bits.uop.debug_pc, wbresp.bits.uop.pdst, wbresp.bits.uop.ldst, wbdata)
+      // }
 
       assert (!wbIsValid(RT_FLT), "[fppipeline] An FP writeback is being attempted to the Int Regfile.")
 

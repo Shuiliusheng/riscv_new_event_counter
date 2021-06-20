@@ -457,20 +457,20 @@ class ALUUnit(isJmpUnit: Boolean = false, numStages: Int = 1, dataWidth: Int)(im
                 Mux(io.req.bits.uop.revent, io.req.bits.counter, alu_out))
   r_counter(0) := io.req.bits.rs1_data
   
-  val debug_cycles = freechips.rocketchip.util.WideCounter(32)
+  // val debug_cycles = freechips.rocketchip.util.WideCounter(32)
 
-  when(io.req.bits.uop.revent){
-    printf("fu, cycle: %d, revent source data: pc: 0x%x, data: %d\n", debug_cycles.value, io.req.bits.uop.debug_pc, io.req.bits.counter)
-  }
-  val print_flag = RegInit(false.B)
-  when(io.resp.bits.uop.revent){
-    print_flag := true.B
-  }
+  // when(io.req.bits.uop.revent){
+  //   printf("fu, cycle: %d, revent source data: pc: 0x%x, data: %d\n", debug_cycles.value, io.req.bits.uop.debug_pc, io.req.bits.counter)
+  // }
+  // val print_flag = RegInit(false.B)
+  // when(io.resp.bits.uop.revent){
+  //   print_flag := true.B
+  // }
 
 
-  when(io.resp.bits.uop.revent || print_flag){
-    printf("fu, cycle: %d, req, pc: 0x%x, ldst: %d, pdst: %d, lrs1: %d, data: %d, lrs2: %d, data: %d\n", debug_cycles.value, io.req.bits.uop.debug_pc, io.req.bits.uop.ldst, io.req.bits.uop.pdst, io.req.bits.uop.lrs1, io.req.bits.rs1_data, io.req.bits.uop.lrs2, io.req.bits.rs2_data)
-  }
+  // when(io.resp.bits.uop.revent || print_flag){
+  //   printf("fu, cycle: %d, req, pc: 0x%x, ldst: %d, pdst: %d, lrs1: %d, data: %d, lrs2: %d, data: %d\n", debug_cycles.value, io.req.bits.uop.debug_pc, io.req.bits.uop.ldst, io.req.bits.uop.pdst, io.req.bits.uop.lrs1, io.req.bits.rs1_data, io.req.bits.uop.lrs2, io.req.bits.rs2_data)
+  // }
 
   r_pred(0) := io.req.bits.uop.is_sfb_shadow && io.req.bits.pred_data
   for (i <- 1 until numStages) {
@@ -484,9 +484,9 @@ class ALUUnit(isJmpUnit: Boolean = false, numStages: Int = 1, dataWidth: Int)(im
 
   
 
-  when(io.resp.bits.uop.revent || print_flag){
-    printf("fu, cycle: %d, revent, pc: 0x%x, data: %d, ldst: %d, pdst: %d\n", debug_cycles.value, io.resp.bits.uop.debug_pc, io.resp.bits.data, io.resp.bits.uop.ldst, io.resp.bits.uop.pdst)
-  }
+  // when(io.resp.bits.uop.revent || print_flag){
+  //   printf("fu, cycle: %d, revent, pc: 0x%x, data: %d, ldst: %d, pdst: %d\n", debug_cycles.value, io.resp.bits.uop.debug_pc, io.resp.bits.data, io.resp.bits.uop.ldst, io.resp.bits.uop.pdst)
+  // }
 
   // Bypass
   // for the ALU, we can bypass same cycle as compute
@@ -504,9 +504,9 @@ class ALUUnit(isJmpUnit: Boolean = false, numStages: Int = 1, dataWidth: Int)(im
   //chw: for event, write counter and the source data is from the rs1 register
   io.resp.bits.counter := r_counter(numStages-1)
 
-   when(io.resp.bits.uop.wevent){
-    printf("fu, cycle: %d, write revent, pc: 0x%x, data: %d\n", debug_cycles.value, io.resp.bits.uop.debug_pc, io.resp.bits.counter)
-  }
+  //  when(io.resp.bits.uop.wevent){
+  //   printf("fu, cycle: %d, write revent, pc: 0x%x, data: %d\n", debug_cycles.value, io.resp.bits.uop.debug_pc, io.resp.bits.counter)
+  // }
 
   // Exceptions
   io.resp.bits.fflags.valid := false.B

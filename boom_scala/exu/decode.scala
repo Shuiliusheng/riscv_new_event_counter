@@ -523,12 +523,12 @@ class DecodeUnit(implicit p: Parameters) extends BoomModule
   //chw: for event
   uop.revent := (cs.uopc === uopADD) && (inst(RD_MSB,RD_LSB) === 0.U)
   uop.wevent := (cs.uopc === uopSUB) && (inst(RD_MSB,RD_LSB) === 0.U)
-  when(uop.revent){
-    printf("read event inst: pc: 0x%x, inst: 0x%x, lrs1: %d, lrs2: %d, rd: %d, valid: %d\n", uop.debug_pc, uop.inst, uop.lrs1, uop.lrs2, uop.ldst, uop.ldst_val)
-  }
-  when(uop.wevent){
-    printf("write event inst: pc: 0x%x, inst: 0x%x, lrs1: %d, lrs2: %d\n", uop.debug_pc, uop.inst, uop.lrs1, uop.lrs2)
-  }
+  // when(uop.revent){
+  //   printf("read event inst: pc: 0x%x, inst: 0x%x, lrs1: %d, lrs2: %d, rd: %d, valid: %d\n", uop.debug_pc, uop.inst, uop.lrs1, uop.lrs2, uop.ldst, uop.ldst_val)
+  // }
+  // when(uop.wevent){
+  //   printf("write event inst: pc: 0x%x, inst: 0x%x, lrs1: %d, lrs2: %d\n", uop.debug_pc, uop.inst, uop.lrs1, uop.lrs2)
+  // }
 
   uop.uopc       := cs.uopc
   uop.iq_type    := cs.iq_type
