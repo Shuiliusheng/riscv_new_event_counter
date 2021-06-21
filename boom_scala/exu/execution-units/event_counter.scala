@@ -12,7 +12,7 @@ import boom.util._
 
 class EventCounterIO(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) extends BoomBundle
 {
-  val event_signals  = Input(Vec(8, UInt(4.W)))
+  val event_signals  = Input(Vec(16, UInt(4.W)))
 
   val read_addr = Input(Vec(issueWidth, Valid(UInt(5.W))))
   val read_data = Output(Vec(issueWidth, UInt(64.W)))
@@ -72,6 +72,14 @@ class EventCounter(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) ext
                 is (5.U) { reg_read_data(i) := reg_counters(5) }
                 is (6.U) { reg_read_data(i) := reg_counters(6) }
                 is (7.U) { reg_read_data(i) := reg_counters(7) }
+                is (8.U) { reg_read_data(i) := reg_counters(8) }
+                is (9.U) { reg_read_data(i) := reg_counters(9) }
+                is (10.U) { reg_read_data(i) := reg_counters(10) }
+                is (11.U) { reg_read_data(i) := reg_counters(11) }
+                is (12.U) { reg_read_data(i) := reg_counters(12) }
+                is (13.U) { reg_read_data(i) := reg_counters(13) }
+                is (14.U) { reg_read_data(i) := reg_counters(14) }
+                is (15.U) { reg_read_data(i) := reg_counters(15) }
             }
             // printf("read event valid, cycle: %d, idx: %d, addr: %d, data0: %d, data1: %d\n", debug_cycles.value, i.U, io.read_addr(i).bits, reg_counters(0), reg_counters(1))
         }
@@ -88,6 +96,15 @@ class EventCounter(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) ext
                 is (5.U) { reg_counters(5) := io.write_data(i) }
                 is (6.U) { reg_counters(6) := io.write_data(i) }
                 is (7.U) { reg_counters(7) := io.write_data(i) }
+
+                is (8.U) { reg_counters(8) := io.write_data(i)  }
+                is (9.U) { reg_counters(9) := io.write_data(i)  }
+                is (10.U) { reg_counters(10) := io.write_data(i)  }
+                is (11.U) { reg_counters(11) := io.write_data(i)  }
+                is (12.U) { reg_counters(12) := io.write_data(i)  }
+                is (13.U) { reg_counters(13) := io.write_data(i)  }
+                is (14.U) { reg_counters(14) := io.write_data(i)  }
+                is (15.U) { reg_counters(15) := io.write_data(i)  }
             }
             // printf("write event valid, cycle: %d, idx: %d, addr: %d, data: %d, counter1: %d, counter2: %d, counter3: %d\n", debug_cycles.value, i.U, io.write_addr(i).bits, io.write_data(i), reg_counters(0), reg_counters(1), reg_counters(2))
         }

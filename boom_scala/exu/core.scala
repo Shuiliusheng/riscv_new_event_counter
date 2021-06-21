@@ -126,7 +126,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
   //chw: for event
   val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu)))
-  for(i <- 0 until 8){
+  for(i <- 0 until 16){
     event_counters.io.event_signals(i) := 1.U
   }
 
@@ -1048,23 +1048,33 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   event_counters.io.event_signals(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
   event_counters.io.event_signals(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
   event_counters.io.event_signals(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+  event_counters.io.event_signals(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
 
-  val events = RegInit(VecInit(Seq.fill(5) { 0.U(64.W) }))
-  when(io.ifu.perf.acquire){
-    events(0) := events(0) + 1.U
-  }
-  when(io.lsu.perf.acquire){
-    events(1) := events(1) + 1.U
-  }
-  when(io.ifu.perf.tlbMiss){
-    events(2) := events(2) + 1.U
-  }
-  when(io.lsu.perf.tlbMiss){
-    events(3) := events(3) + 1.U
-  }
-  when(io.ptw.perf.l2miss){
-    events(4) := events(4) + 1.U
-  }
+  event_counters.io.event_signals(8) := 1.U  //cycles
+  event_counters.io.event_signals(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+  event_counters.io.event_signals(10) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+  event_counters.io.event_signals(11) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+  event_counters.io.event_signals(12) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+  event_counters.io.event_signals(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+  event_counters.io.event_signals(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+  event_counters.io.event_signals(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+
+  // val events = RegInit(VecInit(Seq.fill(5) { 0.U(64.W) }))
+  // when(io.ifu.perf.acquire){
+  //   events(0) := events(0) + 1.U
+  // }
+  // when(io.lsu.perf.acquire){
+  //   events(1) := events(1) + 1.U
+  // }
+  // when(io.ifu.perf.tlbMiss){
+  //   events(2) := events(2) + 1.U
+  // }
+  // when(io.lsu.perf.tlbMiss){
+  //   events(3) := events(3) + 1.U
+  // }
+  // when(io.ptw.perf.l2miss){
+  //   events(4) := events(4) + 1.U
+  // }
 
   // when(rob.io.commit.valids.reduce(_||_)){
   //   printf("cycle: %d, events: %d, %d, %d, %d, %d\n", debug_cycles.value, events(0), events(1), events(2), events(3), events(4))
