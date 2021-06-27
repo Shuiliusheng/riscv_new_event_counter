@@ -1040,6 +1040,12 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   // Delay retire/exception 1 cycle
   csr.io.retire    := RegNext(PopCount(rob.io.commit.arch_valids.asUInt))
 
+  val dis_br = Wire(Vec(coreWidth, Bool()))
+  for(w <- 0 until coreWidth){
+    dis_br(w) := dis_fire(w) && dis_uops(w).is_br
+  }
+  // event_counters.io.event_signals(7) := RegNext(PopCount(dis_br.asUInt))
+
   //chw: for setting event signals
   event_counters.io.event_signals(0) := 1.U  //cycles
   event_counters.io.event_signals(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
