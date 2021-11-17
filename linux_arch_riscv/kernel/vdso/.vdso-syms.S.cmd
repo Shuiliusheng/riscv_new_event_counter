@@ -1,1 +1,0 @@
-cmd_arch/riscv/kernel/vdso/vdso-syms.S := /home/cuihongwei/server22/fpga-rocket/temp/rv32_toolchain/bin/riscv32-unknown-linux-gnu-nm -D arch/riscv/kernel/vdso/vdso.so | ./arch/riscv/kernel/vdso/so2s.sh > arch/riscv/kernel/vdso/vdso-syms.S
