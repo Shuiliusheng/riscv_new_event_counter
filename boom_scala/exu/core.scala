@@ -1040,51 +1040,66 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   // Delay retire/exception 1 cycle
   csr.io.retire    := RegNext(PopCount(rob.io.commit.arch_valids.asUInt))
 
-  val dis_br = Wire(Vec(coreWidth, Bool()))
-  for(w <- 0 until coreWidth){
-    dis_br(w) := dis_fire(w) && dis_uops(w).is_br
-  }
+  //chw: 统计dispatch的br指令数量
+  // val dis_br = Wire(Vec(coreWidth, Bool()))
+  // for(w <- 0 until coreWidth){
+  //   dis_br(w) := dis_fire(w) && dis_uops(w).is_br
+  // }
   // event_counters.io.event_signals(7) := RegNext(PopCount(dis_br.asUInt))
 
-  //chw: for setting event signals
-  event_counters.io.event_signals(0) := 1.U  //cycles
-  event_counters.io.event_signals(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-  event_counters.io.event_signals(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
-  event_counters.io.event_signals(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
-  event_counters.io.event_signals(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
-  event_counters.io.event_signals(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
-  event_counters.io.event_signals(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
-  event_counters.io.event_signals(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+  //chw: 设置event set的选择信号，用于选择当前16个计数器分别计数哪些事件
+  val event_set_sel = RegInit(0.U(5.W))
+  for (w <- 0 until coreWidth) {
+    when (rob.io.commit.valids(w)) {
+      when (rob.io.commit.uops(w).uopc === uopOR && rob.io.commit.uops(w).ldst === 0.U) {
+        event_set_sel := rob.io.commit.uops(w).lrs1 // + rob.io.commit.uops(w).lrs2
+      }
+    }
+  }
 
-  event_counters.io.event_signals(8) := 1.U  //cycles
-  event_counters.io.event_signals(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-  event_counters.io.event_signals(10) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
-  event_counters.io.event_signals(11) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
-  event_counters.io.event_signals(12) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
-  event_counters.io.event_signals(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
-  event_counters.io.event_signals(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
-  event_counters.io.event_signals(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+  val used_event_sigs = WireInit(VecInit(Seq.fill(16) { 0.U(4.W) }))
 
-  // val events = RegInit(VecInit(Seq.fill(5) { 0.U(64.W) }))
-  // when(io.ifu.perf.acquire){
-  //   events(0) := events(0) + 1.U
-  // }
-  // when(io.lsu.perf.acquire){
-  //   events(1) := events(1) + 1.U
-  // }
-  // when(io.ifu.perf.tlbMiss){
-  //   events(2) := events(2) + 1.U
-  // }
-  // when(io.lsu.perf.tlbMiss){
-  //   events(3) := events(3) + 1.U
-  // }
-  // when(io.ptw.perf.l2miss){
-  //   events(4) := events(4) + 1.U
-  // }
+  switch (event_set_sel) {
+    is (0.U) { 
+      used_event_sigs(0) := 1.U  //cycles
+      used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+      used_event_sigs(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+      used_event_sigs(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+      used_event_sigs(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+      used_event_sigs(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+      used_event_sigs(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+      used_event_sigs(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
 
-  // when(rob.io.commit.valids.reduce(_||_)){
-  //   printf("cycle: %d, events: %d, %d, %d, %d, %d\n", debug_cycles.value, events(0), events(1), events(2), events(3), events(4))
-  // }
+      used_event_sigs(8) := 1.U  //cycles
+      used_event_sigs(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+      used_event_sigs(10) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+      used_event_sigs(11) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+      used_event_sigs(12) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+      used_event_sigs(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+      used_event_sigs(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+      used_event_sigs(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+    }
+
+    is (1.U) {
+      used_event_sigs(0) := 1.U  //cycles
+      used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+      used_event_sigs(2) := Mux(b2.mispredict, 1.U, 0.U)
+      used_event_sigs(3) := Mux(io.ifu.perf.acquire, 1.U, 0.U)
+    }
+
+    is (2.U) {
+      used_event_sigs(0) := 1.U  //cycles
+      used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+      used_event_sigs(2) := Mux(dec_stalls.reduce(_||_), 1.U, 0.U)
+      used_event_sigs(3) := Mux(ren_stalls.reduce(_||_), 1.U, 0.U)
+      used_event_sigs(4) := Mux(dis_stalls.reduce(_||_), 1.U, 0.U)
+      used_event_sigs(5) := Mux(rob.io.flush_frontend, 1.U, 0.U) //flush the frontend due to exception 
+    }
+  }
+
+  for (w <- 0 until 16) {
+    event_counters.io.event_signals(w) := used_event_sigs(w)
+  }
 
 
   csr.io.exception := RegNext(rob.io.com_xcpt.valid)

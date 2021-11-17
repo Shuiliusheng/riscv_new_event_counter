@@ -1,1 +1,0 @@
-cmd_arch/riscv/boot/Image := /home/cuihongwei/server22/fpga-rocket/temp/rv32_toolchain/bin/riscv32-unknown-linux-gnu-objcopy -O binary -O binary -R .note -R .note.gnu.build-id -R .comment -S vmlinux arch/riscv/boot/Image
