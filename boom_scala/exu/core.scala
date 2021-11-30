@@ -126,8 +126,8 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
   //chw: for event
   val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu)))
-  for(i <- 0 until 16){
-    event_counters.io.event_signals(i) := 1.U
+  for(i <- 0 until 32){
+    event_counters.io.event_signals(i) := 0.U
   }
 
   // wb arbiter for the 0th ll writeback
