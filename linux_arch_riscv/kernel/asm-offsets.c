@@ -312,7 +312,7 @@ void asm_offsets(void)
 		- offsetof(struct task_struct, thread.fstate.f[0])
 	);
 
-	//chw
+	//增加代码，设置每个counter变量相对于结构体开始的偏移量
 	DEFINE(TASK_THREAD_C0_RA, offsetof(struct task_struct, thread.counters[0]) - offsetof(struct task_struct, thread.ra));
 	DEFINE(TASK_THREAD_C1_RA, offsetof(struct task_struct, thread.counters[1]) - offsetof(struct task_struct, thread.ra));
 	DEFINE(TASK_THREAD_C2_RA, offsetof(struct task_struct, thread.counters[2]) - offsetof(struct task_struct, thread.ra));

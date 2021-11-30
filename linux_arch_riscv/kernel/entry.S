@@ -416,7 +416,7 @@ ENTRY(__switch_to)
 	REG_S s10, TASK_THREAD_S10_RA(a3)
 	REG_S s11, TASK_THREAD_S11_RA(a3)
 
-	/*chw*/
+	/*********************************************************************************/
 	/* Save perf counter into prev->thread */
 	add x0,s0,x0
 	REG_S s0, TASK_THREAD_C0_RA(a3)
@@ -455,7 +455,6 @@ ENTRY(__switch_to)
 
 
 	/* Restore context from next->thread */
-	/* Restore perf counter from next->thread */
 	REG_L s0, TASK_THREAD_C0_RA(a4)
 	sub x0,s0,x0
 	REG_L s1, TASK_THREAD_C1_RA(a4)
@@ -490,8 +489,9 @@ ENTRY(__switch_to)
 	REG_L s7, TASK_THREAD_C15_RA(a4)
 	sub x0,s7,x15
 	fence
+	/**********************************************************************/
 	
-
+	/* Restore perf counter from next->thread */
 	REG_L ra,  TASK_THREAD_RA_RA(a4)
 	REG_L sp,  TASK_THREAD_SP_RA(a4)
 	REG_L s0,  TASK_THREAD_S0_RA(a4)

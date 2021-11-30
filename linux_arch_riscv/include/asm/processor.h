@@ -35,6 +35,7 @@ struct thread_struct {
 	unsigned long s[12];	/* s[0]: frame pointer */
 	struct __riscv_d_ext_state fstate;
 	unsigned long bad_cause;
+	//增加计数器，用于记录线程的硬件计数器的值
 	unsigned long counters[16];
 };
 
