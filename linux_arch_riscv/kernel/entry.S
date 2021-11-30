@@ -417,6 +417,7 @@ ENTRY(__switch_to)
 	REG_S s11, TASK_THREAD_S11_RA(a3)
 
 	/*chw*/
+	/* Save perf counter into prev->thread */
 	add x0,s0,x0
 	REG_S s0, TASK_THREAD_C0_RA(a3)
 	add x0,s0,x1
@@ -433,10 +434,28 @@ ENTRY(__switch_to)
 	REG_S s0, TASK_THREAD_C6_RA(a3)
 	add x0,s0,x7
 	REG_S s0, TASK_THREAD_C7_RA(a3)
+
+	add x0,s0,x8
+	REG_S s0, TASK_THREAD_C8_RA(a3)
+	add x0,s0,x9
+	REG_S s0, TASK_THREAD_C9_RA(a3)
+	add x0,s0,x10
+	REG_S s0, TASK_THREAD_C10_RA(a3)
+	add x0,s0,x11
+	REG_S s0, TASK_THREAD_C11_RA(a3)
+	add x0,s0,x12
+	REG_S s0, TASK_THREAD_C12_RA(a3)
+	add x0,s0,x13
+	REG_S s0, TASK_THREAD_C13_RA(a3)
+	add x0,s0,x14
+	REG_S s0, TASK_THREAD_C14_RA(a3)
+	add x0,s0,x15
+	REG_S s0, TASK_THREAD_C15_RA(a3)
 	fence
 
 
 	/* Restore context from next->thread */
+	/* Restore perf counter from next->thread */
 	REG_L s0, TASK_THREAD_C0_RA(a4)
 	sub x0,s0,x0
 	REG_L s1, TASK_THREAD_C1_RA(a4)
@@ -453,6 +472,23 @@ ENTRY(__switch_to)
 	sub x0,s6,x6
 	REG_L s7, TASK_THREAD_C7_RA(a4)
 	sub x0,s7,x7
+
+	REG_L s0, TASK_THREAD_C8_RA(a4)
+	sub x0,s0,x8
+	REG_L s1, TASK_THREAD_C9_RA(a4)
+	sub x0,s1,x9
+	REG_L s2, TASK_THREAD_C10_RA(a4)
+	sub x0,s2,x10
+	REG_L s3, TASK_THREAD_C11_RA(a4)
+	sub x0,s3,x11
+	REG_L s4, TASK_THREAD_C12_RA(a4)
+	sub x0,s4,x12
+	REG_L s5, TASK_THREAD_C13_RA(a4)
+	sub x0,s5,x13
+	REG_L s6, TASK_THREAD_C14_RA(a4)
+	sub x0,s6,x14
+	REG_L s7, TASK_THREAD_C15_RA(a4)
+	sub x0,s7,x15
 	fence
 	
 

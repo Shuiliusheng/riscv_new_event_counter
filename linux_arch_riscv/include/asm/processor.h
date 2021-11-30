@@ -35,7 +35,7 @@ struct thread_struct {
 	unsigned long s[12];	/* s[0]: frame pointer */
 	struct __riscv_d_ext_state fstate;
 	unsigned long bad_cause;
-	unsigned long counters[8];
+	unsigned long counters[16];
 };
 
 #define INIT_THREAD {					\

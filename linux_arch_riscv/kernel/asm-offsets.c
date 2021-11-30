@@ -322,6 +322,15 @@ void asm_offsets(void)
 	DEFINE(TASK_THREAD_C6_RA, offsetof(struct task_struct, thread.counters[6]) - offsetof(struct task_struct, thread.ra));
 	DEFINE(TASK_THREAD_C7_RA, offsetof(struct task_struct, thread.counters[7]) - offsetof(struct task_struct, thread.ra));
 
+	DEFINE(TASK_THREAD_C8_RA, offsetof(struct task_struct, thread.counters[8]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C9_RA, offsetof(struct task_struct, thread.counters[9]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C10_RA, offsetof(struct task_struct, thread.counters[10]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C11_RA, offsetof(struct task_struct, thread.counters[11]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C12_RA, offsetof(struct task_struct, thread.counters[12]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C13_RA, offsetof(struct task_struct, thread.counters[13]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C14_RA, offsetof(struct task_struct, thread.counters[14]) - offsetof(struct task_struct, thread.ra));
+	DEFINE(TASK_THREAD_C15_RA, offsetof(struct task_struct, thread.counters[15]) - offsetof(struct task_struct, thread.ra));
+
 	/*
 	 * We allocate a pt_regs on the stack when entering the kernel.  This
 	 * ensures the alignment is sane.
