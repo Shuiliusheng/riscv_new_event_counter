@@ -4,7 +4,7 @@ build: perfcounter_test.c pfc_asm.h
 	${RISCV_GCC} perfcounter_test.c -static -o perfrun
 
 run: perfrun
-	./perfrun | tee -a perfrun.log
+	echo "./perfrun | tee -a perfrun.log"
 
 clean:
 	rm perfrun
