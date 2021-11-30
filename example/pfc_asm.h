@@ -98,22 +98,22 @@ void write_counter(long temp, int n){
 		case 14: asm volatile( " add x6,%[in1],0        \n\t" " sub x0,x6,x14     \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
 		case 15: asm volatile( " add x6,%[in1],0        \n\t" " sub x0,x6,x15     \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
 		
-		case 16 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 16    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 17 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 17    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 18 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 18    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 19 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 19    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 20 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 20    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 21 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 21    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 22 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 22    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 23 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 23    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 24 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 24    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 25 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 25    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 26 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 26    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 27 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 27    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 28 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 28    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 29 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 29    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 30 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 30    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
-		case 31 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x 31    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 16 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x16    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 17 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x17    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 18 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x18    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 19 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x19    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 20 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x20    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 21 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x21    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 22 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x22    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 23 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x23    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 24 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x24    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 25 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x25    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 26 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x26    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 27 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x27    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 28 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x28    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 29 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x29    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 30 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x30    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
+		case 31 : asm volatile( " add x6,%[in1],0       \n\t" " sub x0,x6,x31    \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
 		default: break;
 	}
 }
