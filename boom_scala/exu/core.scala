@@ -126,8 +126,8 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
   //chw: for event
   val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu)))
-  for(i <- 0 until 16){
-    event_counters.io.event_signals(i) := 1.U
+  for(i <- 0 until 32){
+    event_counters.io.event_signals(i) := 0.U
   }
 
   // wb arbiter for the 0th ll writeback
@@ -1059,45 +1059,53 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
   val used_event_sigs = WireInit(VecInit(Seq.fill(32) { 0.U(4.W) }))
 
-  switch (event_set_sel) {
-    is (0.U) { 
-      used_event_sigs(0) := 1.U  //cycles
-      used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
-      used_event_sigs(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
-      used_event_sigs(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
-      used_event_sigs(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
-      used_event_sigs(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
-      used_event_sigs(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+  when (event_set_sel === 0.U) { 
+    used_event_sigs(0) := 1.U  //cycles
+    used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    used_event_sigs(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+    used_event_sigs(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+    used_event_sigs(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+    used_event_sigs(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+    used_event_sigs(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+    used_event_sigs(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
 
-      used_event_sigs(8) := 1.U  //cycles
-      used_event_sigs(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs(10) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
-      used_event_sigs(11) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
-      used_event_sigs(12) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
-      used_event_sigs(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
-      used_event_sigs(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
-      used_event_sigs(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
-    }
+    used_event_sigs(8) := 1.U  //cycles
+    used_event_sigs(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    used_event_sigs(10) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+    used_event_sigs(11) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+    used_event_sigs(12) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+    used_event_sigs(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+    used_event_sigs(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+    used_event_sigs(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
 
-    is (1.U) {
-      used_event_sigs(0) := 1.U  //cycles
-      used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs(2) := Mux(b2.mispredict, 1.U, 0.U)
-      used_event_sigs(3) := Mux(io.ifu.perf.acquire, 1.U, 0.U)
-    }
-
-    is (2.U) {
-      used_event_sigs(0) := 1.U  //cycles
-      used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs(2) := Mux(dec_stalls.reduce(_||_), 1.U, 0.U)
-      used_event_sigs(3) := Mux(ren_stalls.reduce(_||_), 1.U, 0.U)
-      used_event_sigs(4) := Mux(dis_stalls.reduce(_||_), 1.U, 0.U)
-      used_event_sigs(5) := Mux(rob.io.flush_frontend, 1.U, 0.U) //flush the frontend due to exception 
-    }
+    used_event_sigs(16) := 1.U  //cycles
+    used_event_sigs(17) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    used_event_sigs(18) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+    used_event_sigs(19) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+    used_event_sigs(20) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+    used_event_sigs(21) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+    used_event_sigs(22) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+    used_event_sigs(23) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
   }
 
-  for (w <- 0 until 16) {
+  when (event_set_sel === 1.U) {
+    used_event_sigs(0) := 1.U  //cycles
+    used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    used_event_sigs(2) := Mux(b2.mispredict, 1.U, 0.U)
+    used_event_sigs(3) := Mux(io.ifu.perf.acquire, 1.U, 0.U)
+  }
+
+  when (event_set_sel === 2.U) {
+    used_event_sigs(0) := 1.U  //cycles
+    used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    used_event_sigs(2) := Mux(dec_stalls.reduce(_||_), 1.U, 0.U)
+    used_event_sigs(3) := Mux(ren_stalls.reduce(_||_), 1.U, 0.U)
+    used_event_sigs(4) := Mux(dis_stalls.reduce(_||_), 1.U, 0.U)
+    used_event_sigs(5) := Mux(rob.io.flush_frontend, 1.U, 0.U) //flush the frontend due to exception 
+  }
+  
+
+  for (w <- 0 until 32) {
     event_counters.io.event_signals(w) := used_event_sigs(w)
   }
 
