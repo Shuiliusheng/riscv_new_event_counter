@@ -12,7 +12,7 @@ import boom.util._
 
 class EventCounterIO(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) extends BoomBundle
 {
-  val event_signals  = Input(Vec(32, UInt(4.W)))
+  val event_signals  = Input(Vec(16, UInt(4.W)))
 
   val read_addr = Input(Vec(issueWidth, Valid(UInt(5.W))))
   val read_data = Output(Vec(issueWidth, UInt(64.W)))
@@ -53,22 +53,22 @@ class EventCounter(issueWidth: Int, writeWidth: Int)(implicit p: Parameters) ext
         is (14.U) { reg_read_data(i) := reg_counters(14) }
         is (15.U) { reg_read_data(i) := reg_counters(15) }
 
-        // is (16.U) { reg_read_data(i) := reg_counters(16) }
-        // is (17.U) { reg_read_data(i) := reg_counters(17) }
-        // is (18.U) { reg_read_data(i) := reg_counters(18) }
-        // is (19.U) { reg_read_data(i) := reg_counters(19) }
-        // is (20.U) { reg_read_data(i) := reg_counters(20) }
-        // is (21.U) { reg_read_data(i) := reg_counters(21) }
-        // is (22.U) { reg_read_data(i) := reg_counters(22) }
-        // is (23.U) { reg_read_data(i) := reg_counters(23) }
-        // is (24.U) { reg_read_data(i) := reg_counters(24) }
-        // is (25.U) { reg_read_data(i) := reg_counters(25) }
-        // is (26.U) { reg_read_data(i) := reg_counters(26) }
-        // is (27.U) { reg_read_data(i) := reg_counters(27) }
-        // is (28.U) { reg_read_data(i) := reg_counters(28) }
-        // is (29.U) { reg_read_data(i) := reg_counters(29) }
-        // is (30.U) { reg_read_data(i) := reg_counters(30) }
-        // is (31.U) { reg_read_data(i) := reg_counters(31) }
+        // is (16.U) { reg_read_data(i) := 1.U } //reg_counters(16) }
+        // is (17.U) { reg_read_data(i) := 1.U } //reg_counters(17) }
+        // is (18.U) { reg_read_data(i) := 1.U } //reg_counters(18) }
+        // is (19.U) { reg_read_data(i) := 1.U } //reg_counters(19) }
+        // is (20.U) { reg_read_data(i) := 1.U } //reg_counters(20) }
+        // is (21.U) { reg_read_data(i) := 1.U } //reg_counters(21) }
+        // is (22.U) { reg_read_data(i) := 1.U } //reg_counters(22) }
+        // is (23.U) { reg_read_data(i) := 1.U } //reg_counters(23) }
+        // is (24.U) { reg_read_data(i) := 1.U } //reg_counters(24) }
+        // is (25.U) { reg_read_data(i) := 1.U } //reg_counters(25) }
+        // is (26.U) { reg_read_data(i) := 1.U } //reg_counters(26) }
+        // is (27.U) { reg_read_data(i) := 1.U } //reg_counters(27) }
+        // is (28.U) { reg_read_data(i) := 1.U } //reg_counters(28) }
+        // is (29.U) { reg_read_data(i) := 1.U } //reg_counters(29) }
+        // is (30.U) { reg_read_data(i) := 1.U } //reg_counters(30) }
+        // is (31.U) { reg_read_data(i) := 1.U } //reg_counters(31) }
       }
     }
   }
