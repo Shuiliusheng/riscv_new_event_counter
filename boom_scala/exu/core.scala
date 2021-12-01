@@ -1057,7 +1057,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     }
   }
 
-  val used_event_sigs = WireInit(VecInit(Seq.fill(16) { 0.U(4.W) }))
+  val used_event_sigs = WireInit(VecInit(Seq.fill(32) { 0.U(4.W) }))
 
   switch (event_set_sel) {
     is (0.U) { 
@@ -1097,7 +1097,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     }
   }
 
-  for (w <- 0 until 16) {
+  for (w <- 0 until 32) {
     event_counters.io.event_signals(w) := used_event_sigs(w)
   }
 
