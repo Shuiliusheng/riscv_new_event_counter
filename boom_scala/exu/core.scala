@@ -126,10 +126,6 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
   //chw: for event
   val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu)))
-  for(i <- 0 until 16){
-    event_counters.io.event_signals(i) := 1.U
-  }
-
   // wb arbiter for the 0th ll writeback
   // TODO: should this be a multi-arb?
   val ll_wbarb         = Module(new Arbiter(new ExeUnitResp(xLen), 1 +
@@ -1058,6 +1054,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   }
 
   val used_event_sigs = WireInit(VecInit(Seq.fill(16) { 0.U(4.W) }))
+  val used_event_sigs_high = WireInit(VecInit(Seq.fill(16) { 0.U(4.W) }))
 
   switch (event_set_sel) {
     is (0.U) { 
@@ -1078,10 +1075,24 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
       used_event_sigs(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
       used_event_sigs(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
       used_event_sigs(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
-      // used_event_sigs(16) := 1.U //RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      // used_event_sigs(17) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      // used_event_sigs(18) := Mux(io.ifu.perf.acquire, 1.U, 0.U)  // commit inst
-      // used_event_sigs(19) := Mux(b2.mispredict, 1.U, 0.U) //RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+
+      used_event_sigs_high(0) := 1.U  //cycles
+      used_event_sigs_high(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+      used_event_sigs_high(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+      used_event_sigs_high(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+      used_event_sigs_high(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+      used_event_sigs_high(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+      used_event_sigs_high(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+      used_event_sigs_high(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+
+      used_event_sigs_high(8) := 1.U  //cycles
+      used_event_sigs_high(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+      used_event_sigs_high(10) := Mux(io.ifu.perf.acquire, 2.U, 0.U) //i-cache miss
+      used_event_sigs_high(11) := Mux(io.lsu.perf.acquire, 2.U, 0.U) //d-cache miss
+      used_event_sigs_high(12) := Mux(io.ifu.perf.tlbMiss, 2.U, 0.U) //i-tlb miss
+      used_event_sigs_high(13) := Mux(io.lsu.perf.tlbMiss, 2.U, 0.U) //d-tlb miss
+      used_event_sigs_high(14) := Mux(io.ptw.perf.l2miss, 2.U, 0.U) //L2 TLB miss
+      used_event_sigs_high(15) := Mux(b2.mispredict, 2.U, 0.U) //bp mis-prediction
     }
 
     is (1.U) {
@@ -1103,6 +1114,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
   for (w <- 0 until 16) {
     event_counters.io.event_signals(w) := used_event_sigs(w)
+    event_counters.io.event_signals_high(w) := used_event_sigs_high(w)
   }
 
 
