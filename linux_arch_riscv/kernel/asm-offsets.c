@@ -11,6 +11,8 @@
 #include <asm/thread_info.h>
 #include <asm/ptrace.h>
 
+void asm_offsets(void);
+
 void asm_offsets(void)
 {
 	OFFSET(TASK_THREAD_RA, task_struct, thread.ra);
@@ -27,7 +29,6 @@ void asm_offsets(void)
 	OFFSET(TASK_THREAD_S9, task_struct, thread.s[9]);
 	OFFSET(TASK_THREAD_S10, task_struct, thread.s[10]);
 	OFFSET(TASK_THREAD_S11, task_struct, thread.s[11]);
-
 	OFFSET(TASK_TI_FLAGS, task_struct, thread_info.flags);
 	OFFSET(TASK_TI_PREEMPT_COUNT, task_struct, thread_info.preempt_count);
 	OFFSET(TASK_TI_KERNEL_SP, task_struct, thread_info.kernel_sp);
@@ -67,16 +68,9 @@ void asm_offsets(void)
 	OFFSET(TASK_THREAD_F30, task_struct, thread.fstate.f[30]);
 	OFFSET(TASK_THREAD_F31, task_struct, thread.fstate.f[31]);
 	OFFSET(TASK_THREAD_FCSR, task_struct, thread.fstate.fcsr);
-
-	//chw: for counters
-	OFFSET(TASK_THREAD_C0, task_struct, thread.counters[0]);
-	OFFSET(TASK_THREAD_C1, task_struct, thread.counters[1]);
-	OFFSET(TASK_THREAD_C2, task_struct, thread.counters[2]);
-	OFFSET(TASK_THREAD_C3, task_struct, thread.counters[3]);
-	OFFSET(TASK_THREAD_C4, task_struct, thread.counters[4]);
-	OFFSET(TASK_THREAD_C5, task_struct, thread.counters[5]);
-	OFFSET(TASK_THREAD_C6, task_struct, thread.counters[6]);
-	OFFSET(TASK_THREAD_C7, task_struct, thread.counters[7]);
+#ifdef CONFIG_STACKPROTECTOR
+	OFFSET(TSK_STACK_CANARY, task_struct, stack_canary);
+#endif
 
 	DEFINE(PT_SIZE, sizeof(struct pt_regs));
 	OFFSET(PT_EPC, pt_regs, epc);
@@ -311,8 +305,7 @@ void asm_offsets(void)
 		  offsetof(struct task_struct, thread.fstate.fcsr)
 		- offsetof(struct task_struct, thread.fstate.f[0])
 	);
-
-	//增加代码，设置每个counter变量相对于结构体开始的偏移量
+	
 	DEFINE(TASK_THREAD_C0_RA, offsetof(struct task_struct, thread.counters[0]) - offsetof(struct task_struct, thread.ra));
 	DEFINE(TASK_THREAD_C1_RA, offsetof(struct task_struct, thread.counters[1]) - offsetof(struct task_struct, thread.ra));
 	DEFINE(TASK_THREAD_C2_RA, offsetof(struct task_struct, thread.counters[2]) - offsetof(struct task_struct, thread.ra));
@@ -330,10 +323,12 @@ void asm_offsets(void)
 	DEFINE(TASK_THREAD_C13_RA, offsetof(struct task_struct, thread.counters[13]) - offsetof(struct task_struct, thread.ra));
 	DEFINE(TASK_THREAD_C14_RA, offsetof(struct task_struct, thread.counters[14]) - offsetof(struct task_struct, thread.ra));
 	DEFINE(TASK_THREAD_C15_RA, offsetof(struct task_struct, thread.counters[15]) - offsetof(struct task_struct, thread.ra));
-
+	
 	/*
 	 * We allocate a pt_regs on the stack when entering the kernel.  This
 	 * ensures the alignment is sane.
 	 */
 	DEFINE(PT_SIZE_ON_STACK, ALIGN(sizeof(struct pt_regs), STACK_ALIGN));
+
+	OFFSET(KERNEL_MAP_VIRT_ADDR, kernel_mapping, virt_addr);
 }
