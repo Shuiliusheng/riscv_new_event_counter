@@ -30,7 +30,7 @@ int test()
 	}
 
 	for(n=0;n<32;n++){
-		printf("event %2d: before testing: %64llu, after testing: %64llu, before-after: %64llu\n", n, before[n], after[n], after[n]-before[n]);
+		printf("event %2d: before testing: %llu, after testing: %llu, before-after: %llu\n", n, before[n], after[n], after[n]-before[n]);
 	}
 	return 0;
 }

@@ -1,5 +1,5 @@
 
-RISCV_GCC=riscv64-unknown-linux-gcc
+RISCV_GCC=riscv64-unknown-linux-gnu-gcc
 build: perfcounter_test.c pfc_asm.h
 	${RISCV_GCC} perfcounter_test.c -static -o perfrun
 
