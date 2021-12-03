@@ -471,6 +471,7 @@ ENTRY(__switch_to)
 	sub x0,s6,x6
 	REG_L s7, TASK_THREAD_C7_RA(a4)
 	sub x0,s7,x7
+	fence
 
 	REG_L s0, TASK_THREAD_C8_RA(a4)
 	sub x0,s0,x8
