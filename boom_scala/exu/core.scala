@@ -125,7 +125,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   pregfile.io := DontCare // Only use the IO if enableSFBOpt
 
   //chw: for event
-  val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu)))
+  val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu), coreWidth))
   // wb arbiter for the 0th ll writeback
   // TODO: should this be a multi-arb?
   val ll_wbarb         = Module(new Arbiter(new ExeUnitResp(xLen), 1 +
@@ -1317,6 +1317,13 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
       // }
 
       wc_cnt += 1
+    }
+  }
+
+  for (i <- 0 until coreWidth) {
+    when (rob.io.commit.arch_valids(w)) {
+      event_counters.io.com_write_addr(i).valid := rob.io.commit.uops(w).wevent
+      event_counters.io.com_write_addr(i).bits := rob.io.commit.uops(w).lrs2
     }
   }
 
