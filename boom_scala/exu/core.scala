@@ -1148,23 +1148,23 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
       used_event_sigs(14) := delay_sum_valid(br_masks & loop_flip_masks)
       used_event_sigs(15) := delay_sum_valid(br_masks & loop_flip_masks & (loop_taken_masks ^ taken_masks))
     
-      // used_event_sigs_high(0) := used_event_sigs(0)  //cycles
-      // used_event_sigs_high(1) := used_event_sigs(1) // commit inst
-      // used_event_sigs_high(2) := used_event_sigs(2)
-      // used_event_sigs_high(3) := used_event_sigs(3)
-      // used_event_sigs_high(4) := used_event_sigs(4)
-      // used_event_sigs_high(5) := used_event_sigs(5)
-      // used_event_sigs_high(6) := used_event_sigs(6)
-      // used_event_sigs_high(7) := used_event_sigs(7)
+      used_event_sigs_high(0) := used_event_sigs(0)  //cycles
+      used_event_sigs_high(1) := used_event_sigs(1) // commit inst
+      used_event_sigs_high(2) := used_event_sigs(2)
+      used_event_sigs_high(3) := used_event_sigs(3)
+      used_event_sigs_high(4) := used_event_sigs(4)
+      used_event_sigs_high(5) := used_event_sigs(5)
+      used_event_sigs_high(6) := used_event_sigs(6)
+      used_event_sigs_high(7) := used_event_sigs(7)
 
-      // used_event_sigs_high(8) := used_event_sigs(8)
-      // used_event_sigs_high(9) := used_event_sigs(9)
-      // used_event_sigs_high(10) := used_event_sigs(10)
-      // used_event_sigs_high(11) := used_event_sigs(0)
-      // used_event_sigs_high(12) := used_event_sigs(0)
-      // used_event_sigs_high(13) := used_event_sigs(0)
-      // used_event_sigs_high(14) := used_event_sigs(0)
-      // used_event_sigs_high(15) := used_event_sigs(0)
+      used_event_sigs_high(8) := used_event_sigs(8)
+      used_event_sigs_high(9) := used_event_sigs(9)
+      used_event_sigs_high(10) := used_event_sigs(10)
+      used_event_sigs_high(11) := used_event_sigs(11)
+      used_event_sigs_high(12) := used_event_sigs(12)
+      used_event_sigs_high(13) := used_event_sigs(13)
+      used_event_sigs_high(14) := used_event_sigs(14)
+      used_event_sigs_high(15) := used_event_sigs(15)
     
     }
   }
