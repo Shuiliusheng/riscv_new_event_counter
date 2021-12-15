@@ -191,6 +191,18 @@ case class BoomTageParams(
                                               (  256,      16,     8),
                                               (  128,      32,     9),
                                               (  128,      64,     9)),
+  // tableInfo: Seq[Tuple3[Int, Int, Int]] = Seq((   64,       2,     7),
+  //                                             (   64,       4,     7),
+  //                                             (  128,       8,     8),
+  //                                             (  128,      16,     8),
+  //                                             (   64,      32,     9),
+  //                                             (   64,      64,     9)),
+  // tableInfo: Seq[Tuple3[Int, Int, Int]] = Seq((  256,       2,     7),
+  //                                             (  256,       4,     7),
+  //                                             (  512,       8,     8),
+  //                                             (  512,      16,     8),
+  //                                             (  256,      32,     9),
+  //                                             (  256,      64,     9)),
   uBitPeriod: Int = 2048
 )
 
@@ -263,6 +275,8 @@ class TageBranchPredictorBank(params: BoomTageParams = BoomTageParams())(implici
       val ctr = f3_resps(i)(w).bits.ctr
       when (hit) {
         io.resp.f3(w).taken := Mux(ctr === 3.U || ctr === 4.U, altpred, ctr(2))
+        io.resp.f3(w).tage_hit := true.B
+        io.resp.f3(w).tage_taken := io.resp.f3(w).taken
         final_altpred       := altpred
       }
 
