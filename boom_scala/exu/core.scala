@@ -1320,11 +1320,9 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
     }
   }
 
-  for (i <- 0 until coreWidth) {
-    when (rob.io.commit.arch_valids(w)) {
-      event_counters.io.com_write_addr(i).valid := rob.io.commit.uops(w).wevent
-      event_counters.io.com_write_addr(i).bits := rob.io.commit.uops(w).lrs2
-    }
+  for (w <- 0 until coreWidth) {
+    event_counters.io.com_write_addr(w).valid := rob.io.commit.arch_valids(w) && rob.io.commit.uops(w).wevent
+    event_counters.io.com_write_addr(w).bits  := rob.io.commit.uops(w).lrs2
   }
 
 
