@@ -116,6 +116,7 @@ class BTBBranchPredictorBank(params: BoomBTBParams = BoomBTBParams())(implicit p
       when (RegNext(RegNext(s1_is_jal(w)))) {
         io.resp.f3(w).taken      := true.B
       }
+      io.resp.f3(w).btb_hit := true.B
     }
   }
 

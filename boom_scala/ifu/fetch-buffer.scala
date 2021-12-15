@@ -121,6 +121,14 @@ class FetchBuffer(implicit p: Parameters) extends BoomModule
       in_uops(i).bp_xcpt_if     := io.enq.bits.bp_xcpt_if_oh(i)
 
       in_uops(i).debug_fsrc     := io.enq.bits.fsrc
+
+      in_uops(i).btb_hit        := io.enq.bits.btb_hit(i)
+      in_uops(i).bim_taken      := io.enq.bits.bim_taken(i)
+      in_uops(i).tage_hit       := io.enq.bits.tage_hit(i)
+      in_uops(i).tage_taken     := io.enq.bits.tage_taken(i)
+      in_uops(i).loop_hit       := io.enq.bits.loop_hit(i)
+      in_uops(i).loop_flip      := io.enq.bits.loop_flip(i)
+      in_uops(i).loop_taken     := io.enq.bits.loop_taken(i)
     }
   }
 

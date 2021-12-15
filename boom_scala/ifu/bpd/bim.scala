@@ -126,6 +126,7 @@ class BIMBranchPredictorBank(params: BoomBIMParams = BoomBIMParams())(implicit p
   for (w <- 0 until bankWidth) {
     io.resp.f2(w).taken := s2_resp(w)
     io.resp.f3(w).taken := RegNext(io.resp.f2(w).taken)
+    io.resp.f3(w).bim_taken := io.resp.f3(w).taken
   }
   io.f3_meta := RegNext(s2_meta.asUInt)
 }

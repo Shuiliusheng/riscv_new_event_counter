@@ -61,6 +61,8 @@ class MicroOp(implicit p: Parameters) extends BoomBundle
   val is_jal           = Bool()                      // is this a JAL (doesn't include JR)? used for branch unit
   val is_sfb           = Bool()                      // is this a sfb or in the shadow of a sfb
 
+  def is_ret           = is_jalr && lrs1 === BitPat("b00?01") && ldst === X0
+
   val br_mask          = UInt(maxBrCount.W)  // which branches are we being speculated under?
   val br_tag           = UInt(brTagSz.W)
 
@@ -145,6 +147,15 @@ class MicroOp(implicit p: Parameters) extends BoomBundle
   val debug_fsrc       = UInt(BSRC_SZ.W)
   // What prediction structure provides the prediction TO this op
   val debug_tsrc       = UInt(BSRC_SZ.W)
+
+  // bpd predicts
+  val btb_hit          = Bool()
+  val bim_taken        = Bool()
+  val tage_hit         = Bool()
+  val tage_taken       = Bool()
+  val loop_hit         = Bool()
+  val loop_flip        = Bool()
+  val loop_taken       = Bool()
 
   // Do we allocate a branch tag for this?
   // SFB branches don't get a mask, they get a predicate bit
