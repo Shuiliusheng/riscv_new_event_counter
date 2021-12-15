@@ -576,7 +576,7 @@ class DecodeUnit(implicit p: Parameters) extends BoomModule
   uop.is_fence   := cs.is_fence
   uop.is_fencei  := cs.is_fencei
   uop.is_sys_pc2epc   := cs.is_sys_pc2epc
-  uop.is_unique  := cs.inst_unique || uop.wevent
+  uop.is_unique  := cs.inst_unique // || uop.wevent
   uop.flush_on_commit := cs.flush_on_commit || (csr_en && !csr_ren && io.csr_decode.write_flush)
 
   uop.bypassable   := cs.bypassable
