@@ -125,7 +125,7 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   pregfile.io := DontCare // Only use the IO if enableSFBOpt
 
   //chw: for event
-  val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu), coreWidth))
+  val event_counters = Module(new EventCounter(issue_units.map(_.issueWidth).sum, exe_units.count(_.hasAlu)))
   // wb arbiter for the 0th ll writeback
   // TODO: should this be a multi-arb?
   val ll_wbarb         = Module(new Arbiter(new ExeUnitResp(xLen), 1 +
@@ -1056,44 +1056,47 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
   val used_event_sigs = WireInit(VecInit(Seq.fill(16) { 0.U(4.W) }))
   val used_event_sigs_high = WireInit(VecInit(Seq.fill(16) { 0.U(4.W) }))
 
+  used_event_sigs(0) := 1.U
+  used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt))
+
   switch (event_set_sel) {
-    is (0.U) { 
-      used_event_sigs(0) := 1.U  //cycles
-      used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
-      used_event_sigs(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
-      used_event_sigs(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
-      used_event_sigs(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
-      used_event_sigs(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
-      used_event_sigs(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+    // is (0.U) { 
+    //   used_event_sigs(0) := 1.U  //cycles
+    //   used_event_sigs(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    //   used_event_sigs(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+    //   used_event_sigs(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+    //   used_event_sigs(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+    //   used_event_sigs(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+    //   used_event_sigs(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+    //   used_event_sigs(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
 
-      used_event_sigs(8) := 1.U  //cycles
-      used_event_sigs(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs(10) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
-      used_event_sigs(11) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
-      used_event_sigs(12) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
-      used_event_sigs(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
-      used_event_sigs(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
-      used_event_sigs(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+    //   used_event_sigs(8) := 1.U  //cycles
+    //   used_event_sigs(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    //   used_event_sigs(10) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+    //   used_event_sigs(11) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+    //   used_event_sigs(12) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+    //   used_event_sigs(13) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+    //   used_event_sigs(14) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+    //   used_event_sigs(15) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
 
-      used_event_sigs_high(0) := 1.U  //cycles
-      used_event_sigs_high(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs_high(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
-      used_event_sigs_high(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
-      used_event_sigs_high(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
-      used_event_sigs_high(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
-      used_event_sigs_high(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
-      used_event_sigs_high(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
+    //   used_event_sigs_high(0) := 1.U  //cycles
+    //   used_event_sigs_high(1) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    //   used_event_sigs_high(2) := Mux(io.ifu.perf.acquire, 1.U, 0.U) //i-cache miss
+    //   used_event_sigs_high(3) := Mux(io.lsu.perf.acquire, 1.U, 0.U) //d-cache miss
+    //   used_event_sigs_high(4) := Mux(io.ifu.perf.tlbMiss, 1.U, 0.U) //i-tlb miss
+    //   used_event_sigs_high(5) := Mux(io.lsu.perf.tlbMiss, 1.U, 0.U) //d-tlb miss
+    //   used_event_sigs_high(6) := Mux(io.ptw.perf.l2miss, 1.U, 0.U) //L2 TLB miss
+    //   used_event_sigs_high(7) := Mux(b2.mispredict, 1.U, 0.U) //bp mis-prediction
 
-      used_event_sigs_high(8) := 1.U  //cycles
-      used_event_sigs_high(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
-      used_event_sigs_high(10) := Mux(io.ifu.perf.acquire, 2.U, 0.U) //i-cache miss
-      used_event_sigs_high(11) := Mux(io.lsu.perf.acquire, 2.U, 0.U) //d-cache miss
-      used_event_sigs_high(12) := Mux(io.ifu.perf.tlbMiss, 2.U, 0.U) //i-tlb miss
-      used_event_sigs_high(13) := Mux(io.lsu.perf.tlbMiss, 2.U, 0.U) //d-tlb miss
-      used_event_sigs_high(14) := Mux(io.ptw.perf.l2miss, 2.U, 0.U) //L2 TLB miss
-      used_event_sigs_high(15) := Mux(b2.mispredict, 2.U, 0.U) //bp mis-prediction
-    }
+    //   used_event_sigs_high(8) := 1.U  //cycles
+    //   used_event_sigs_high(9) := RegNext(PopCount(rob.io.commit.arch_valids.asUInt)) // commit inst
+    //   used_event_sigs_high(10) := Mux(io.ifu.perf.acquire, 2.U, 0.U) //i-cache miss
+    //   used_event_sigs_high(11) := Mux(io.lsu.perf.acquire, 2.U, 0.U) //d-cache miss
+    //   used_event_sigs_high(12) := Mux(io.ifu.perf.tlbMiss, 2.U, 0.U) //i-tlb miss
+    //   used_event_sigs_high(13) := Mux(io.lsu.perf.tlbMiss, 2.U, 0.U) //d-tlb miss
+    //   used_event_sigs_high(14) := Mux(io.ptw.perf.l2miss, 2.U, 0.U) //L2 TLB miss
+    //   used_event_sigs_high(15) := Mux(b2.mispredict, 2.U, 0.U) //bp mis-prediction
+    // }
 
     is (1.U) {
       used_event_sigs(0) := 1.U  //cycles
@@ -1109,6 +1112,60 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
       used_event_sigs(3) := Mux(ren_stalls.reduce(_||_), 1.U, 0.U)
       used_event_sigs(4) := Mux(dis_stalls.reduce(_||_), 1.U, 0.U)
       used_event_sigs(5) := Mux(rob.io.flush_frontend, 1.U, 0.U) //flush the frontend due to exception 
+    }
+
+    // For overall branch predictions
+    is (0.U) {
+      def delay_sum_valid(mask: UInt) = RegNext(PopCount(rob.io.commit.arch_valids.asUInt & mask))
+
+      val br_masks     = VecInit(rob.io.commit.uops.map(_.is_br)).asUInt
+      val jalr_masks   = VecInit(rob.io.commit.uops.map(_.is_jalr)).asUInt
+      val ret_masks    = VecInit(rob.io.commit.uops.map(_.is_ret)).asUInt
+      val bsrc_c_masks = VecInit(rob.io.commit.uops.map(_.debug_fsrc === BSRC_C)).asUInt
+
+      used_event_sigs(2) := delay_sum_valid(br_masks)   //commit br instruciotns
+      used_event_sigs(3) := delay_sum_valid(jalr_masks) //commit jalr instruciotns
+      used_event_sigs(4) := delay_sum_valid(ret_masks)  //commit ret instructions
+      used_event_sigs(5) := delay_sum_valid(br_masks   & bsrc_c_masks) //ALU detect: br misprediction
+      used_event_sigs(6) := delay_sum_valid(jalr_masks & bsrc_c_masks) //ALU detect: jalr misprediction
+      used_event_sigs(7) := delay_sum_valid(ret_masks  & bsrc_c_masks) //ALU detect: ret misprediction
+
+      val taken_masks       = VecInit(rob.io.commit.uops.map(_.taken)).asUInt
+      val btb_hit_masks     = VecInit(rob.io.commit.uops.map(_.btb_hit)).asUInt
+      val bim_taken_masks   = VecInit(rob.io.commit.uops.map(_.bim_taken)).asUInt
+      val tage_hit_masks    = VecInit(rob.io.commit.uops.map(_.tage_hit)).asUInt
+      val tage_taken_masks  = VecInit(rob.io.commit.uops.map(_.tage_taken)).asUInt
+      val loop_hit_masks    = VecInit(rob.io.commit.uops.map(_.loop_hit)).asUInt
+      val loop_flip_masks   = VecInit(rob.io.commit.uops.map(_.loop_flip)).asUInt
+      val loop_taken_masks  = VecInit(rob.io.commit.uops.map(_.loop_taken)).asUInt
+
+      used_event_sigs(8)  := delay_sum_valid(jalr_masks & (~ret_masks).asUInt & btb_hit_masks)
+      used_event_sigs(9)  := delay_sum_valid(jalr_masks & (~ret_masks).asUInt & btb_hit_masks & bsrc_c_masks)
+      used_event_sigs(10) := delay_sum_valid(br_masks & loop_hit_masks)
+      used_event_sigs(11) := delay_sum_valid(br_masks & (bim_taken_masks ^ taken_masks))
+      used_event_sigs(12) := delay_sum_valid(br_masks & tage_hit_masks)
+      used_event_sigs(13) := delay_sum_valid(br_masks & tage_hit_masks & (tage_taken_masks ^ taken_masks))
+      used_event_sigs(14) := delay_sum_valid(br_masks & loop_flip_masks)
+      used_event_sigs(15) := delay_sum_valid(br_masks & loop_flip_masks & (loop_taken_masks ^ taken_masks))
+    
+      // used_event_sigs_high(0) := used_event_sigs(0)  //cycles
+      // used_event_sigs_high(1) := used_event_sigs(1) // commit inst
+      // used_event_sigs_high(2) := used_event_sigs(2)
+      // used_event_sigs_high(3) := used_event_sigs(3)
+      // used_event_sigs_high(4) := used_event_sigs(4)
+      // used_event_sigs_high(5) := used_event_sigs(5)
+      // used_event_sigs_high(6) := used_event_sigs(6)
+      // used_event_sigs_high(7) := used_event_sigs(7)
+
+      // used_event_sigs_high(8) := used_event_sigs(8)
+      // used_event_sigs_high(9) := used_event_sigs(9)
+      // used_event_sigs_high(10) := used_event_sigs(10)
+      // used_event_sigs_high(11) := used_event_sigs(0)
+      // used_event_sigs_high(12) := used_event_sigs(0)
+      // used_event_sigs_high(13) := used_event_sigs(0)
+      // used_event_sigs_high(14) := used_event_sigs(0)
+      // used_event_sigs_high(15) := used_event_sigs(0)
+    
     }
   }
 
@@ -1318,11 +1375,6 @@ class BoomCore(usingTrace: Boolean)(implicit p: Parameters) extends BoomModule
 
       wc_cnt += 1
     }
-  }
-
-  for (w <- 0 until coreWidth) {
-    event_counters.io.com_write_addr(w).valid := rob.io.commit.arch_valids(w) && rob.io.commit.uops(w).wevent
-    event_counters.io.com_write_addr(w).bits  := rob.io.commit.uops(w).lrs2
   }
 
 

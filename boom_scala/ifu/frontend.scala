@@ -247,6 +247,14 @@ class FetchBundle(implicit p: Parameters) extends BoomBundle
   val fsrc    = UInt(BSRC_SZ.W)
   // Source of the prediction to this bundle
   val tsrc    = UInt(BSRC_SZ.W)
+
+  val btb_hit     = Vec(fetchWidth, Bool())
+  val bim_taken   = Vec(fetchWidth, Bool())
+  val tage_hit    = Vec(fetchWidth, Bool())
+  val tage_taken  = Vec(fetchWidth, Bool())
+  val loop_hit    = Vec(fetchWidth, Bool())
+  val loop_flip   = Vec(fetchWidth, Bool())
+  val loop_taken  = Vec(fetchWidth, Bool())
 }
 
 
@@ -582,6 +590,16 @@ class BoomFrontendModule(outer: BoomFrontend) extends LazyModuleImp(outer)
   f3_fetch_bundle.fsrc := f3_imemresp.fsrc
   f3_fetch_bundle.tsrc := f3_imemresp.tsrc
   f3_fetch_bundle.shadowed_mask := f3_shadowed_mask
+
+  // Save bpd resps into fetch bundle
+  val f3_preds = f3_bpd_resp.io.deq.bits.preds
+  f3_fetch_bundle.btb_hit     := f3_preds.map(_.btb_hit)
+  f3_fetch_bundle.bim_taken   := f3_preds.map(_.bim_taken)
+  f3_fetch_bundle.tage_hit    := f3_preds.map(_.tage_hit)
+  f3_fetch_bundle.tage_taken  := f3_preds.map(_.tage_taken)
+  f3_fetch_bundle.loop_hit    := f3_preds.map(_.loop_hit)
+  f3_fetch_bundle.loop_flip   := f3_preds.map(_.loop_flip)
+  f3_fetch_bundle.loop_taken  := f3_preds.map(_.loop_taken)
 
   // Tracks trailing 16b of previous fetch packet
   val f3_prev_half    = Reg(UInt(16.W))

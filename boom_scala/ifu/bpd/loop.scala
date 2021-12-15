@@ -54,6 +54,8 @@ class LoopBranchPredictorBank(implicit p: Parameters) extends BranchPredictorBan
       val update_idx   = Input(UInt())
       val update_resolve_dir = Input(Bool())
       val update_meta  = Input(new LoopMeta)
+
+      val debug_hit    = Output(Bool())
     })
 
     val doing_reset = RegInit(true.B)
@@ -77,8 +79,10 @@ class LoopBranchPredictorBank(implicit p: Parameters) extends BranchPredictorBan
 
     io.f3_pred := io.f3_pred_in
     io.f3_meta.s_cnt := f3_scnt
+    io.debug_hit := false.B
 
     when (f3_entry.tag === f3_tag) {
+      io.debug_hit := true.B
       when (f3_scnt === f3_entry.p_cnt && f3_entry.conf === 7.U) {
         io.f3_pred := !io.f3_pred_in
       }
@@ -194,6 +198,9 @@ class LoopBranchPredictorBank(implicit p: Parameters) extends BranchPredictorBan
 
     columns(w).io.f3_pred_in  := io.resp_in(0).f3(w).taken
     io.resp.f3(w).taken       := columns(w).io.f3_pred
+    io.resp.f3(w).loop_hit    := columns(w).io.debug_hit
+    io.resp.f3(w).loop_flip   := io.resp.f3(w).taken ^ io.resp_in(0).f3(w).taken
+    io.resp.f3(w).loop_taken  := io.resp.f3(w).taken
 
     columns(w).io.update_mispredict      := (s1_update.valid &&
                                              s1_update.bits.br_mask(w) &&

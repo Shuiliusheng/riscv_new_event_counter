@@ -131,6 +131,7 @@ class WithNSmallBooms(n: Int = 1, overrideIdOffset: Option[Int] = None) extends 
  */
 class WithNMediumBooms(n: Int = 1, overrideIdOffset: Option[Int] = None) extends Config(
   new WithTAGELBPD ++ // Default to TAGE-L BPD
+  // new WithBoom2BPD ++
   new Config((site, here, up) => {
     case TilesLocated(InSubsystem) => {
       val prev = up(TilesLocated(InSubsystem), site)
@@ -460,7 +461,9 @@ class WithBoom2BPD extends Config((site, here, up) => {
       branchPredictor = ((resp_in: BranchPredictionBankResponse, p: Parameters) => {
         // gshare is just variant of TAGE with 1 table
         val gshare = Module(new TageBranchPredictorBank(
-          BoomTageParams(tableInfo = Seq((256, 16, 7)))
+          // BoomTageParams(tableInfo = Seq((256, 16, 7)))
+          // BoomTageParams(tableInfo = Seq((128, 16, 7)))
+          BoomTageParams(tableInfo = Seq((512, 16, 7)))
         )(p))
         val btb = Module(new BTBBranchPredictorBank()(p))
         val bim = Module(new BIMBranchPredictorBank()(p))
