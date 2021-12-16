@@ -1,3 +1,6 @@
+#ifndef   _PFC_ASM_  
+#define   _PFC_ASM_  
+
 #define RESET_COUNTER_LOW asm volatile( \
     " add x6,x0,x0     \n\t" \
     " sub x0,x6,x0     \n\t" \
@@ -159,3 +162,5 @@ __attribute((destructor)) void exit_record(){
 		printf("event %2d: before: %32llu, after: %32llu, before-after: %32llu\n", n, start_values[n], exit_values[n], exit_values[n]-start_values[n]);
 	}
 }
+
+#endif 
