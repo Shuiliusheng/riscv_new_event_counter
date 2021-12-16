@@ -1,4 +1,4 @@
-#define RESET_COUNTER() asm volatile( \
+#define RESET_COUNTER_LOW asm volatile( \
     " add x6,x0,x0     \n\t" \
     " sub x0,x6,x0     \n\t" \
     " sub x0,x6,x1     \n\t" \
@@ -17,6 +17,10 @@
     " sub x0,x6,x13     \n\t" \
     " sub x0,x6,x14     \n\t" \
     " sub x0,x6,x15     \n\t" \
+    " fence     \n\t" \
+);
+
+#define RESET_COUNTER_HIGH asm volatile( \
 	" sub x0,x6,x16      \n\t" \
 	" sub x0,x6,x17      \n\t" \
 	" sub x0,x6,x18      \n\t" \
@@ -36,8 +40,8 @@
     " fence     \n\t" \
 );
 
-long read_counter(int n){
-	long temp=0;
+unsigned long long read_counter(int n){
+	unsigned long long temp=0;
 	switch(n){
 		//add x0,x6,x0: 微指令，表示将0号计数器中的值读入到x6寄存器中
 		case 0: asm volatile( " add x0,x6,x0    \n\t" " add %[o1],x6,0         \n\t" :[o1]"=r"(temp) :[temp]"r"(temp));; break;
@@ -78,7 +82,7 @@ long read_counter(int n){
 	return temp;
 }
 
-void write_counter(long temp, int n){
+void write_counter(unsigned long long temp, int n){
 	switch(n){
 		//sub x0,x6,x0: 伪指令，使用寄存器x6中的值初始化0号计数器
 		case 0: asm volatile( " add x6,%[in1],0        \n\t" " sub x0,x6,x0     \n\t" :[t]"=r"(temp) :[in1]"r"(temp) );; break;
@@ -132,5 +136,26 @@ void set_event_set(int set){
 		case 8: asm volatile( " or x0,x8,x8    \n\t" " fence         \n\t" ); break;
 		default: break;
 	}
+}
 
+unsigned long long start_values[32] = {0};
+
+__attribute((constructor)) void start_record(){
+	RESET_COUNTER_LOW;
+	printf("start read performance counters\n");
+	for(int n=0;n<32;n++){
+		start_values[n]=read_counter(n);
+	}
+}
+
+__attribute((destructor)) void exit_record(){
+	unsigned long long exit_values[32] = {0};
+	int n=0;
+	for(n=0;n<32;n++){
+		exit_values[n]=read_counter(n);
+	}
+
+	for(n=0;n<32;n++){
+		printf("event %2d: before: %32llu, after: %32llu, before-after: %32llu\n", n, start_values[n], exit_values[n], exit_values[n]-start_values[n]);
+	}
 }
