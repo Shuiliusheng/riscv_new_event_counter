@@ -215,8 +215,5 @@ class RegisterRead(
     if (numReadPorts > 1) io.exe_reqs(w).bits.rs2_data := exe_reg_rs2_data(w)
     if (numReadPorts > 2) io.exe_reqs(w).bits.rs3_data := exe_reg_rs3_data(w)
     if (enableSFBOpt)     io.exe_reqs(w).bits.pred_data := exe_reg_pred_data(w)
-
-    //chw: for event
-    io.exe_reqs(w).bits.counter := 0.U
   }
 }

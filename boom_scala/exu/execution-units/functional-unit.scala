@@ -95,9 +95,6 @@ class FuncUnitReq(val dataWidth: Int)(implicit p: Parameters) extends BoomBundle
   val pred_data = Bool()
 
   val kill = Bool() // kill everything
-
-  //chw: for event
-  val counter = UInt(64.W)
 }
 
 /**
@@ -114,9 +111,6 @@ class FuncUnitResp(val dataWidth: Int)(implicit p: Parameters) extends BoomBundl
   val addr = UInt((vaddrBits+1).W) // only for maddr -> LSU
   val mxcpt = new ValidIO(UInt((freechips.rocketchip.rocket.Causes.all.max+2).W)) //only for maddr->LSU
   val sfence = Valid(new freechips.rocketchip.rocket.SFenceReq) // only for mcalc
-
-  //chw: for event
-  val counter = UInt(64.W)
 }
 
 /**
@@ -448,65 +442,26 @@ class ALUUnit(isJmpUnit: Boolean = false, numStages: Int = 1, dataWidth: Int)(im
   val alu_out = Mux(io.req.bits.uop.is_sfb_shadow && io.req.bits.pred_data,
     Mux(io.req.bits.uop.ldst_is_rs1, io.req.bits.rs1_data, io.req.bits.rs2_data),
     Mux(io.req.bits.uop.uopc === uopMOV, io.req.bits.rs2_data, alu.io.out))
-
-  val r_counter = Reg(Vec(numStages, UInt(64.W)))
-
   r_val (0) := io.req.valid
-  //chw: for event, read counter, the source is from counter in req
-  r_data(0) := Mux(io.req.bits.uop.is_sfb_br, pc_sel === PC_BRJMP, 
-                Mux(io.req.bits.uop.revent, io.req.bits.counter, alu_out))
-  r_counter(0) := io.req.bits.rs1_data
-  
-  // val debug_cycles = freechips.rocketchip.util.WideCounter(32)
-
-  // when(io.req.bits.uop.revent){
-  //   printf("fu, cycle: %d, revent source data: pc: 0x%x, data: %d\n", debug_cycles.value, io.req.bits.uop.debug_pc, io.req.bits.counter)
-  // }
-  // val print_flag = RegInit(false.B)
-  // when(io.resp.bits.uop.revent){
-  //   print_flag := true.B
-  // }
-
-
-  // when(io.resp.bits.uop.revent || print_flag){
-  //   printf("fu, cycle: %d, req, pc: 0x%x, ldst: %d, pdst: %d, lrs1: %d, data: %d, lrs2: %d, data: %d\n", debug_cycles.value, io.req.bits.uop.debug_pc, io.req.bits.uop.ldst, io.req.bits.uop.pdst, io.req.bits.uop.lrs1, io.req.bits.rs1_data, io.req.bits.uop.lrs2, io.req.bits.rs2_data)
-  // }
-
+  r_data(0) := Mux(io.req.bits.uop.is_sfb_br, pc_sel === PC_BRJMP, alu_out)
   r_pred(0) := io.req.bits.uop.is_sfb_shadow && io.req.bits.pred_data
   for (i <- 1 until numStages) {
     r_val(i)  := r_val(i-1)
     r_data(i) := r_data(i-1)
     r_pred(i) := r_pred(i-1)
-    r_counter(i) := r_counter(i-1)
   }
   io.resp.bits.data := r_data(numStages-1)
   io.resp.bits.predicated := r_pred(numStages-1)
-
-  
-
-  // when(io.resp.bits.uop.revent || print_flag){
-  //   printf("fu, cycle: %d, revent, pc: 0x%x, data: %d, ldst: %d, pdst: %d\n", debug_cycles.value, io.resp.bits.uop.debug_pc, io.resp.bits.data, io.resp.bits.uop.ldst, io.resp.bits.uop.pdst)
-  // }
-
   // Bypass
   // for the ALU, we can bypass same cycle as compute
   require (numStages >= 1)
   require (numBypassStages >= 1)
   io.bypass(0).valid := io.req.valid
   io.bypass(0).bits.data := Mux(io.req.bits.uop.is_sfb_br, pc_sel === PC_BRJMP, alu_out)
-  io.bypass(0).bits.data := Mux(io.req.bits.uop.is_sfb_br, pc_sel === PC_BRJMP, 
-                Mux(io.req.bits.uop.revent, io.req.bits.counter, alu_out))
   for (i <- 1 until numStages) {
     io.bypass(i).valid := r_val(i-1)
     io.bypass(i).bits.data := r_data(i-1)
   }
-
-  //chw: for event, write counter and the source data is from the rs1 register
-  io.resp.bits.counter := r_counter(numStages-1)
-
-  //  when(io.resp.bits.uop.wevent){
-  //   printf("fu, cycle: %d, write revent, pc: 0x%x, data: %d\n", debug_cycles.value, io.resp.bits.uop.debug_pc, io.resp.bits.counter)
-  // }
 
   // Exceptions
   io.resp.bits.fflags.valid := false.B
@@ -537,8 +492,6 @@ class MemAddrCalcUnit(implicit p: Parameters)
 
   io.resp.bits.addr := effective_address
   io.resp.bits.data := store_data
-  //chw: for event
-  io.resp.bits.counter := 0.U
 
   if (dataWidth > 63) {
     assert (!(io.req.valid && io.req.bits.uop.ctrl.is_std &&
@@ -618,8 +571,6 @@ class FPUUnit(implicit p: Parameters)
   fpu.io.req.bits.fcsr_rm  := io.fcsr_rm
 
   io.resp.bits.data              := fpu.io.resp.bits.data
-  //chw: for event
-  io.resp.bits.counter              := 0.U
   io.resp.bits.fflags.valid      := fpu.io.resp.bits.fflags.valid
   io.resp.bits.fflags.bits.uop   := io.resp.bits.uop
   io.resp.bits.fflags.bits.flags := fpu.io.resp.bits.fflags.bits.flags // kill me now
@@ -671,8 +622,6 @@ class IntToFPUnit(latency: Int)(implicit p: Parameters)
 
 //io.resp.bits.data              := box(ifpu.io.out.bits.data, !io.resp.bits.uop.fp_single)
   io.resp.bits.data              := box(ifpu.io.out.bits.data, out_double)
-  //chw: for event
-  io.resp.bits.counter              := 0.U
   io.resp.bits.fflags.valid      := ifpu.io.out.valid
   io.resp.bits.fflags.bits.uop   := io.resp.bits.uop
   io.resp.bits.fflags.bits.flags := ifpu.io.out.bits.exc
@@ -741,8 +690,6 @@ class DivUnit(dataWidth: Int)(implicit p: Parameters)
   io.resp.valid       := div.io.resp.valid && !this.do_kill
   div.io.resp.ready   := io.resp.ready
   io.resp.bits.data   := div.io.resp.bits.data
-  //chw: for event
-  io.resp.bits.counter   := 0.U
 }
 
 /**
@@ -768,6 +715,4 @@ class PipelinedMulUnit(numStages: Int, dataWidth: Int)(implicit p: Parameters)
   imul.io.req.bits.tag := DontCare
   // response
   io.resp.bits.data    := imul.io.resp.bits.data
-  //chw: for event
-  io.resp.bits.counter    := 0.U
 }

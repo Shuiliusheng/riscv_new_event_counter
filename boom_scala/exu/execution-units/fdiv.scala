@@ -223,6 +223,4 @@ class FDivSqrtUnit(implicit p: Parameters)
   io.resp.bits.fflags.bits.uop := r_out_uop
   io.resp.bits.fflags.bits.uop.br_mask := GetNewBrMask(io.brupdate, r_out_uop)
   io.resp.bits.fflags.bits.flags := out_flags
-  //chw: for event
-  io.resp.bits.counter := 0.U
 }

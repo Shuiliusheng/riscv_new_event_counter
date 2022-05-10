@@ -519,16 +519,6 @@ class DecodeUnit(implicit p: Parameters) extends BoomModule
   uop.exc_cause := xcpt_cause
 
   //-------------------------------------------------------------
-  //ADD     -> List(Y, N, X, uopADD  , IQT_INT, FU_ALU , RT_FIX, RT_FIX, RT_FIX, N, IS_I, N, N, N, N, N, M_X  , 1.U, Y, N, N, N, N, CSR.N),,
-  //chw: for event
-  uop.revent := (cs.uopc === uopADD) && (inst(RD_MSB,RD_LSB) === 0.U)
-  uop.wevent := (cs.uopc === uopSUB) && (inst(RD_MSB,RD_LSB) === 0.U)
-  // when(uop.revent){
-  //   printf("read event inst: pc: 0x%x, inst: 0x%x, lrs1: %d, lrs2: %d, rd: %d, valid: %d\n", uop.debug_pc, uop.inst, uop.lrs1, uop.lrs2, uop.ldst, uop.ldst_val)
-  // }
-  // when(uop.wevent){
-  //   printf("write event inst: pc: 0x%x, inst: 0x%x, lrs1: %d, lrs2: %d\n", uop.debug_pc, uop.inst, uop.lrs1, uop.lrs2)
-  // }
 
   uop.uopc       := cs.uopc
   uop.iq_type    := cs.iq_type
@@ -537,7 +527,7 @@ class DecodeUnit(implicit p: Parameters) extends BoomModule
   // x-registers placed in 0-31, f-registers placed in 32-63.
   // This allows us to straight-up compare register specifiers and not need to
   // verify the rtypes (e.g., bypassing in rename).
-  uop.ldst       := Mux(uop.revent, inst(RS1_MSB,RS1_LSB), inst(RD_MSB,RD_LSB))
+  uop.ldst       := inst(RD_MSB,RD_LSB)
   uop.lrs1       := inst(RS1_MSB,RS1_LSB)
   uop.lrs2       := inst(RS2_MSB,RS2_LSB)
   uop.lrs3       := inst(RS3_MSB,RS3_LSB)
@@ -601,7 +591,29 @@ class DecodeUnit(implicit p: Parameters) extends BoomModule
   //                       (uop.ldst === RA)
 
   //-------------------------------------------------------------
+  //PerfCounterSupport:
+  val setEvent = (cs.uopc === uopADDI) && (inst(RD_MSB,RD_LSB) === 0.U)
+  val getEvent = setEvent && (inst(31, 29) =/= 0.U)
+  uop.setEvent := setEvent
 
+  //Enable_PerfCounter_Support:
+  val opCounter = (cs.uopc === uopANDI) && (inst(RD_MSB,RD_LSB) === 0.U)
+  val readCounter = opCounter && (inst(29, 29) === 1.U) //tag == 512, 此时是读
+  uop.opCounter := opCounter
+
+  when (readCounter || getEvent) {
+    uop.ldst := inst(RS1_MSB,RS1_LSB)
+  }
+
+  when (opCounter || setEvent) {
+    uop.is_unique := true.B
+  }
+
+  when (readCounter) {
+    uop.uopc := uopADDI
+    uop.imm_packed := 0.U
+  }
+  //-------------------------------------------------------------
   io.deq.uop := uop
 }
 
