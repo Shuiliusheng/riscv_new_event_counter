@@ -50,12 +50,12 @@ unsigned long long exit_counters[64] = {0};
 
 __attribute((constructor)) void start_record()
 {
+	printf("start read performance counters\n");
+	
 	int warminst = 10000;
 	InitEnv(0); //只统计user模式的事件
-	SetWarmInsts(warminst); //执行warminst后，重置计数器
-
-	printf("start read performance counters\n");
 	RESET_COUNTER;
+	SetWarmInsts(warminst); //执行warminst后，重置计数器
 }
 
 __attribute((destructor)) void exit_record()
